@@ -1,0 +1,36 @@
+# Local only, never committed (public repo)
+.scratch/
+content-source/
+decisions.tsv
+.claude/settings.json
+.claude/launch.json
+.claude/settings.local.json
+
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+
+# env files
+.env*
+
+# vercel
+.vercel
