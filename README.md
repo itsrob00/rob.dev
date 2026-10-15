@@ -1,6 +1,6 @@
-# rob.dev
+# itsrob.dev
 
-My personal site: who I am, what I've built and how I work. It lives at [rob.dev](https://rob.dev).
+My personal site: who I am, what I've built and how I work. It lives at [itsrob.dev](https://itsrob.dev).
 
 ## Stack
 
