@@ -9,7 +9,7 @@ My personal site: who I am, what I've built and how I work. It lives at [rob.dev
 - ESLint and Prettier, Vitest for unit tests, Playwright for the smoke test
 - Hosted on Vercel
 
-Node 22 (see `.nvmrc`) and npm.
+Node 24 (see `.nvmrc`) and npm.
 
 ## Scripts
 
