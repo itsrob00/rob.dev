@@ -33,4 +33,4 @@ Every pull request runs CI (format, lint, types, unit tests, build, smoke test) 
 
 ## License
 
-The code is MIT-licensed (see [LICENSE](LICENSE)). The content in `content/` and my personal assets (photo, Résumé PDF) are © Rob, all rights reserved.
+The code is MIT-licensed (see [LICENSE](LICENSE)). The content in `content/` and my personal assets (photo, Résumé PDF) are © Rob, all rights reserved. The Satoshi font files in `app/fonts/` belong to Indian Type Foundry and are licensed under the [ITF Free Font License](https://www.fontshare.com/licenses/itf-ffl), not MIT. To use Satoshi yourself, get it from [Fontshare](https://www.fontshare.com/fonts/satoshi).
