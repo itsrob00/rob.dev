@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { formatDateRange } from "../lib/date-range";
+import { formatDateRange, formatYearSpan } from "../lib/date-range";
 
 describe("formatDateRange in years", () => {
   test("shows an ongoing range as running to now", () => {
@@ -56,6 +56,22 @@ describe("formatDateRange in months", () => {
   test("uses fixed English abbreviations", () => {
     expect(formatDateRange({ start: "2024-09", end: "2024-09" }, "month")).toBe(
       "Sep 2024",
+    );
+  });
+});
+
+describe("formatYearSpan", () => {
+  test("shows a span across years as first – last", () => {
+    expect(formatYearSpan({ start: 2014, end: 2019 })).toBe("2014 – 2019");
+  });
+
+  test("shows a span inside one year as that year", () => {
+    expect(formatYearSpan({ start: 2019, end: 2019 })).toBe("2019");
+  });
+
+  test("rejects a span that ends before it starts, failing the build", () => {
+    expect(() => formatYearSpan({ start: 2019, end: 2014 })).toThrow(
+      RangeError,
     );
   });
 });

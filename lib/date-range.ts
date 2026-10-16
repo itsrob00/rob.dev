@@ -68,3 +68,18 @@ export function formatDateRange(
   }
   return `${startLabel}${DASH}${end.month} ${end.year}`;
 }
+
+/** Whole years, both ends included, for records that only know years (Education). */
+export type YearSpan = { start: number; end: number };
+
+/** "2014 – 2019" | "2019". Same dash as formatDateRange. */
+export function formatYearSpan(span: YearSpan): string {
+  if (span.end < span.start) {
+    throw new RangeError(
+      `Span ends before it starts: ${span.start} to ${span.end}`,
+    );
+  }
+  return span.start === span.end
+    ? `${span.start}`
+    : `${span.start}${DASH}${span.end}`;
+}

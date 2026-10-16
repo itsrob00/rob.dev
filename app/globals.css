@@ -20,6 +20,26 @@
   color-scheme: light;
 }
 
+/* Every page prints black on white, whatever the theme. html[data-theme] out-specifies both theme
+   blocks, so source order doesn't matter. Only links use the accent in print. */
+@media print {
+  :root,
+  html[data-theme] {
+    --bg: #fff;
+    --fg: #000;
+    --muted: #444;
+    --line: #bbb;
+    --card: #fff;
+    --accent: #15803d;
+    color-scheme: light;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 14mm 16mm;
+}
+
 :root {
   --font-sans: var(--font-satoshi), system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -54,6 +74,13 @@ ul {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
+}
+
+@media print {
+  /* 100vh is a whole page box in print: a nearly full page would spill onto a blank second one. */
+  body {
+    min-height: 0;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

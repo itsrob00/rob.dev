@@ -9,6 +9,8 @@ export type Profile = {
   email: `${string}@${string}.${string}`;
   linkedin: `https://www.linkedin.com/in/${string}`;
   github: `https://github.com/${string}`;
+  /** The canonical origin, no trailing slash. */
+  site: `https://${string}`;
 };
 
 export const profile = {
@@ -24,4 +26,5 @@ export const profile = {
   email: "roberto.prats00@gmail.com",
   linkedin: "https://www.linkedin.com/in/robertoprats",
   github: "https://github.com/itsrob00",
+  site: "https://itsrob.dev",
 } satisfies Profile;
