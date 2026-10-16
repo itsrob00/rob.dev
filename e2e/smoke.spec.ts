@@ -6,6 +6,10 @@ test("home loads with no console errors", async ({ page }) => {
     if (message.type() === "error") errors.push(message.text());
   });
   page.on("pageerror", (error) => errors.push(error.message));
+  // Only Vercel serves the Web Analytics script; the local static server 404s it.
+  await page.route("**/_vercel/insights/script.js", (route) =>
+    route.fulfill({ contentType: "text/javascript", body: "" }),
+  );
 
   await page.goto("/");
   await expect(
