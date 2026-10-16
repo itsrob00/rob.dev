@@ -20,7 +20,8 @@ export type YearMonth = `${number}-${Month}`;
 
 /** Narrows a string from outside the type checker (frontmatter) to a real YearMonth. */
 export function isYearMonth(value: string): value is YearMonth {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+  const [year, month] = value.split("-");
+  return value.length === 7 && /^\d{4}$/.test(year) && month in MONTHS;
 }
 
 /** A span of months, both ends included. A missing `end` means ongoing. */

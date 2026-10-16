@@ -21,18 +21,18 @@ devflow puts both collections behind one command:
 /devflow:start <what you want done>
 ```
 
-It sorts the task into one of four flows (a feature, a bug, a multi-session job or a small change), then runs that flow's skills in order and stops whenever a step needs my decision. A feature goes from understanding the code, through a grilling session that records decisions, to design, test-driven build, review and a PR body. A bug gets a red reproduction and a regression test before the fix.
+It sorts the task into one of four flows (a feature, a bug, a multi-session job or a small change), then runs that flow's skills in order and stops whenever a step needs my decision. A feature goes from understanding the code, through a grilling session that records decisions, to design, a test-driven build, review, a run through the real app to prove it works, and a PR body. A bug gets a red reproduction and a regression test before the fix.
 
 A few choices shaped it:
 
-- **It doesn't copy anyone's skills.** Its marketplace installs the skills it runs straight from the upstream repos and keeps them in sync, so improvements upstream reach devflow without me touching anything. Skills it doesn't use stay out, including the ones that would clash.
+- **It doesn't copy anyone's skills.** Its marketplace installs the skills it runs straight from the upstream repos and keeps them in sync with those repos. Skills it doesn't use stay out, including the ones that would clash.
 - **Setup runs once per repo.** `/devflow:setup` asks all its questions at once, shows every draft for one review, then does the rest without stopping.
 - **Git stays mine.** A safety hook blocks pushes and anything that throws work away, and gives me the command to run instead.
 - **Work can span sessions.** A long feature ends in tickets, each built in a fresh session with `/devflow:start ticket <ref>`, and a big job hands off between sessions with a file that says exactly where to pick up.
 
 ## Outcome
 
-I use devflow every day, at work and on my own projects. This site was planned and built with it, one ticket at a time. It's open source under the MIT license, and installing it takes three commands:
+I use devflow and refine it every day. This site was planned and built with it, one ticket at a time. It's open source under the MIT license, and installing it takes three commands:
 
 ```
 /plugin marketplace add itsrob00/devflow
@@ -42,4 +42,4 @@ I use devflow every day, at work and on my own projects. This site was planned a
 
 ## Credits
 
-devflow is an orchestration layer. The skills doing the real work are [Matt Pocock's skills](https://github.com/mattpocock/skills) and Lauren Tan's [pstack](https://github.com/backnotprop/pstack), both MIT-licensed. devflow is my way of running them together.
+devflow is an orchestration layer. The skills doing the real work are [Matt Pocock's skills](https://github.com/mattpocock/skills) and Lauren Tan's pstack (originally in [cursor/plugins](https://github.com/cursor/plugins), mirrored at [backnotprop/pstack](https://github.com/backnotprop/pstack)), both MIT-licensed. devflow is my way of running them together.

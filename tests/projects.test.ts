@@ -1,5 +1,5 @@
 import path from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { getProject, getProjects } from "../lib/projects";
 
 // Each fixture is a miniature repo root holding content/projects/*.mdx, so the tests call the
@@ -15,7 +15,7 @@ afterEach(() => {
 });
 
 describe("getProjects", () => {
-  it("lists Projects newest first by start", () => {
+  test("lists Projects newest first by start", () => {
     useFixture("valid");
     expect(getProjects().map((project) => project.slug)).toEqual([
       "newest",
@@ -26,7 +26,7 @@ describe("getProjects", () => {
 });
 
 describe("getProject", () => {
-  it("finds a Project by its slug, with fields from its frontmatter", () => {
+  test("finds a Project by its slug, with fields from its frontmatter", () => {
     useFixture("valid");
     expect(getProject("middle")).toEqual({
       slug: "middle",
@@ -44,44 +44,31 @@ describe("getProject", () => {
     });
   });
 
-  it("returns undefined for a slug no Project has", () => {
+  test("returns undefined for a slug no Project has", () => {
     useFixture("valid");
     expect(getProject("missing")).toBeUndefined();
   });
 });
 
-describe("invalid content fails loudly", () => {
-  it("rejects a Project with a missing field, naming the file and the field", () => {
+describe("invalid Projects fail the build", () => {
+  test("rejects a Project with a missing field, naming the file and the field", () => {
     useFixture("missing-field");
     expect(() => getProjects()).toThrow(/no-title\.mdx.*title/);
   });
-});
 
-describe("a Project needs something to open", () => {
-  it("rejects a Project with neither a repo nor a live link", () => {
+  test("rejects a Project with neither a repo nor a live link", () => {
     useFixture("no-link");
     expect(() => getProjects()).toThrow(
       /no-link\.mdx: links: add a repo or a live link/,
     );
   });
-});
 
-describe("each Project has its own URL", () => {
-  it("rejects two Projects with the same slug, naming both files", () => {
+  test("rejects two Projects with the same slug, naming both files", () => {
     useFixture("duplicate-slug");
     expect(() => getProjects()).toThrow(/slug "same".*first\.mdx.*second\.mdx/);
   });
-});
 
-describe("the site's own content", () => {
-  // Fails `npm test` (and CI, before the build) when a real Project file is invalid.
-  it("accepts every Project in content/projects", () => {
-    expect(getProjects().length).toBeGreaterThan(0);
-  });
-});
-
-describe("malformed values", () => {
-  it("reports every problem in the folder in one error", () => {
+  test("reports every problem in the folder in one error", () => {
     useFixture("malformed");
     const error = (() => {
       try {
@@ -96,4 +83,9 @@ describe("malformed values", () => {
     expect(error).toMatch(/malformed\.mdx: Unrecognized key: "order"/);
     expect(error).toMatch(/notes\.txt: only \.mdx files/);
   });
+});
+
+// Fails `npm test` (and CI, before the build) when a real Project file is invalid.
+test("accepts every Project in the site's content/projects", () => {
+  expect(getProjects().length).toBeGreaterThan(0);
 });

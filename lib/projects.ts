@@ -5,20 +5,10 @@ import type { MDXContent } from "mdx/types";
 import { z } from "zod";
 import { isYearMonth, type DateRange, type YearMonth } from "./date-range";
 
-/**
- * Projects: Rob's public work, one MDX file each in content/projects/.
- *
- * The only way to read Projects. Pages, and later the Résumé, sitemap and OG images, call
- * getProjects() / getProject(). Only the Project page calls loadProjectBody().
- *
- * - The folder is the only list of Projects: drop in a file and it's published.
- * - A Project is plain data (no functions), so it can cross into a Client Component.
- * - Every call re-reads and re-validates the folder. There's no cache, so `next dev` never
- *   shows stale frontmatter, and tests point process.cwd() at a fixture folder.
- *
- * Frontmatter is parsed here with gray-matter, never by the MDX compiler: remark-frontmatter
- * (next.config.ts) only keeps the --- block out of the rendered body.
- */
+// Projects: one MDX file each in content/projects/, and the only way to read them. Every call
+// re-reads and re-validates the folder (no cache, so `next dev` is never stale and tests point
+// process.cwd() at a fixture). gray-matter parses the frontmatter here; remark-frontmatter in
+// next.config.ts only keeps the --- block out of the rendered body.
 
 export type Project = DateRange & {
   /** Sets the URL. Unique across Projects. */
@@ -57,8 +47,8 @@ const yearMonth = z.custom<YearMonth>(
   'use "YYYY-MM", e.g. "2026-10"',
 );
 
-const text = z.string().trim().min(1);
-const https = z.url({ protocol: /^https$/, error: "use an https:// URL" });
+const nonEmptyText = z.string().trim().min(1);
+const httpsUrl = z.url({ protocol: /^https$/, error: "use an https:// URL" });
 
 const dates = z.object({ start: yearMonth, end: yearMonth.optional() });
 
@@ -71,19 +61,22 @@ const frontmatterSchema = z
         /^[a-z0-9]+(-[a-z0-9]+)*$/,
         "use lowercase words joined by hyphens",
       ),
-    title: text,
-    summary: text.refine((s) => !s.includes("\n"), "keep it to one line"),
-    role: text,
+    title: nonEmptyText,
+    summary: nonEmptyText.refine(
+      (s) => !s.includes("\n"),
+      "keep it to one line",
+    ),
+    role: nonEmptyText,
     ...dates.shape,
-    stack: z.array(text).min(1),
+    stack: z.array(nonEmptyText).min(1),
     links: z
-      .strictObject({ repo: https.optional(), live: https.optional() })
+      .strictObject({ repo: httpsUrl.optional(), live: httpsUrl.optional() })
       .refine(
         (links) => links.repo !== undefined || links.live !== undefined,
         "add a repo or a live link",
       ),
     cover: z
-      .strictObject({ src: z.string().startsWith("/"), alt: text })
+      .strictObject({ src: z.string().startsWith("/"), alt: nonEmptyText })
       .optional(),
   })
   .refine((fm) => fm.end === undefined || fm.end >= fm.start, {
