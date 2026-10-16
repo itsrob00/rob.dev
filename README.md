@@ -24,8 +24,13 @@ Node 24 (see `.nvmrc`) and npm.
 | `npm run typecheck`    | Generate route types and run `tsc --noEmit`                      |
 | `npm test`             | Vitest unit tests                                                |
 | `npm run test:e2e`     | Playwright smoke test against `out/` (run `npm run build` first) |
+| `npm run resume:pdf`   | Print `/resume` to `public/Rob-Resume.pdf` (see below)           |
 
 A pre-commit hook (Husky + lint-staged) formats and lints staged files.
+
+## Résumé PDF
+
+`public/Rob-Resume.pdf` is printed from `/resume` and committed. `app/resume/resume-pdf.lock` holds the sha256 of every file the Résumé is built from (found by following the page's imports), of the print settings and of the PDF itself. When one stops matching, `npm run build` fails, locally, in CI and on Vercel, and so does a commit that stages a Résumé input. Then run `npm run resume:pdf` and commit both files. It formats the inputs, builds the site and prints the page with Playwright's Chromium (`npx playwright install chromium` once). When nothing changed it does nothing; `npm run resume:pdf -- --force` re-renders anyway, for example after a Chromium update.
 
 ## Deploys
 

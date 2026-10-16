@@ -9,6 +9,7 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
 - Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
+- When a build ticket's work is committed, set its `Status: resolved`, tick its checklist, and update the feature's `spec.md` for any decision made during the build that changed what the spec says
 - A feature's map tickets and build tickets are numbered separately, so a build ticket writes a decision-map ticket as "map ticket NN" with a relative link (`[map ticket 10](../../portfolio-v1/issues/10-copy-and-voice.md)`), and "ticket NN" alone always means a build ticket
 
 ## When a skill says "publish to the issue tracker"

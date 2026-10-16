@@ -22,6 +22,15 @@ export const metadata: Metadata = {
 export default function ResumePage() {
   return (
     <OneColumnPage>
+      {/* Outside the article, so it never prints and the article's links stay absolute. A plain <a>:
+          the PDF is a static file in public/, not a route for next/link. */}
+      <a
+        href="/Rob-Resume.pdf"
+        download="Rob-Resume.pdf"
+        className={styles.download}
+      >
+        Download PDF
+      </a>
       <article className={styles.resume}>
         <header className={styles.header}>
           <h1 className={styles.name}>{profile.name}</h1>

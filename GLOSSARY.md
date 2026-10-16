@@ -32,6 +32,10 @@ _Avoid_: Skills, tech stack, toolbox
 The printable summary of Experience, Projects, Stack, languages and education, built from the same content as the site and offered as a web page and a PDF. There is one Résumé, in English.
 _Avoid_: CV
 
+**Résumé fingerprint**:
+The sha256 of every file the Résumé is built from and of its print settings. `app/resume/resume-pdf.lock` records it with the committed PDF's own hash, and the build fails when either stops matching, so the PDF can't go stale silently.
+_Avoid_: Checksum, hash file
+
 **Privacy notice**:
 The home-page section that tells visitors what the site and its host collect about them and what their rights are.
 _Avoid_: Privacy policy, cookie policy, cookie banner
