@@ -17,7 +17,7 @@ A dated piece of writing on the blog. Not part of v1; it will sit alongside Proj
 _Avoid_: Article, blog entry
 
 **Selected Work**:
-The home-page section that lists a chosen subset of Projects.
+The home-page section that lists every Project, newest first, one card each.
 _Avoid_: Portfolio, showcase
 
 **Identity column**:
