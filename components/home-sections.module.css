@@ -1,0 +1,80 @@
+.paragraph {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.paragraph + .paragraph {
+  margin-top: 14px;
+}
+
+.experience {
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  margin: 0 -20px;
+  padding: 20px;
+  border-radius: 12px;
+  transition: background-color 0.2s;
+}
+
+.entry:hover {
+  background: var(--card);
+}
+
+.when {
+  padding-top: 4px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.role {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.organization {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.blurb {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* The 1px gaps show the container's background as grid lines. 8 items fill 4 or 2 columns exactly. */
+.stack {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+
+.stack li {
+  padding: 16px;
+  background: var(--bg);
+  font-size: 14px;
+}
+
+@media (max-width: 860px) {
+  .entry {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 560px) {
+  .stack {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
