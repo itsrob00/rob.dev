@@ -1,0 +1,48 @@
+.nav {
+  margin-top: 48px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.link {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 7px 0;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.link:hover,
+.link[aria-current] {
+  color: var(--fg);
+}
+
+/* Every link has a short muted line; the marker covers it with a longer accent one. */
+.tick {
+  position: relative;
+  width: 48px;
+  height: 1px;
+}
+
+.tick::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 24px;
+  background: currentColor;
+}
+
+.marker {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+}
+
+@media (max-width: 860px) {
+  .nav {
+    display: none;
+  }
+}
