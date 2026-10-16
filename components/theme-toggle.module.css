@@ -1,0 +1,21 @@
+.toggle {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  border-color: var(--accent);
+}
+
+:global([data-theme="dark"]) .dark,
+:global([data-theme="light"]) .light {
+  color: var(--fg);
+}
