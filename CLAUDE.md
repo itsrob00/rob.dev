@@ -1,5 +1,9 @@
 @AGENTS.md
 
+## Git
+
+PRs squash-merge into `main` and delete their branch. Before starting a ticket, `git fetch --prune` and branch from `origin/main`.
+
 ## Agent skills
 
 ### Issue tracker
