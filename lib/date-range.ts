@@ -18,6 +18,11 @@ type Month = keyof typeof MONTHS;
 /** "2026-01". Sorts correctly as a string. */
 export type YearMonth = `${number}-${Month}`;
 
+/** Narrows a string from outside the type checker (frontmatter) to a real YearMonth. */
+export function isYearMonth(value: string): value is YearMonth {
+  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
 /** A span of months, both ends included. A missing `end` means ongoing. */
 export type DateRange = { start: YearMonth; end?: YearMonth };
 

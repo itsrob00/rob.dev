@@ -1,0 +1,72 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { StackTags } from "@/components/stack-tags";
+import { formatDateRange } from "@/lib/date-range";
+import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
+import styles from "./page.module.css";
+
+// Static export: one page per Project, and any other slug is a 404.
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return getProjects().map(({ slug }) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/projects/[slug]">): Promise<Metadata> {
+  const project = getProject((await params).slug);
+  return project ? { title: project.title, description: project.summary } : {};
+}
+
+export default async function ProjectPage({
+  params,
+}: PageProps<"/projects/[slug]">) {
+  const project = getProject((await params).slug);
+  if (!project) notFound();
+  const Body = await loadProjectBody(project);
+  const { repo, live } = project.links;
+
+  return (
+    <main className={styles.page}>
+      <Link href="/" className={styles.back}>
+        ← Rob
+      </Link>
+      <article>
+        <header className={styles.header}>
+          <p className={styles.kicker}>{project.kicker}</p>
+          <h1 className={styles.title}>{project.title}</h1>
+          <p className={styles.summary}>{project.summary}</p>
+          <dl className={styles.facts}>
+            <div>
+              <dt>Role</dt>
+              <dd>{project.role}</dd>
+            </div>
+            <div>
+              <dt>When</dt>
+              <dd>{formatDateRange(project, "month")}</dd>
+            </div>
+          </dl>
+          <StackTags stack={project.stack} />
+          <p className={styles.links}>
+            {repo && <a href={repo}>Repository ↗</a>}
+            {live && <a href={live}>Live site ↗</a>}
+          </p>
+          {project.cover && (
+            // Static export has no image optimizer; covers are pre-sized under public/.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className={styles.cover}
+              src={project.cover.src}
+              alt={project.cover.alt}
+            />
+          )}
+        </header>
+        <div className={styles.prose}>
+          <Body />
+        </div>
+      </article>
+    </main>
+  );
+}

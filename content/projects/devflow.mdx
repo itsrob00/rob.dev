@@ -1,0 +1,45 @@
+---
+slug: devflow
+title: devflow
+summary: A Claude Code plugin that plans, builds, checks and proves each task, step by step.
+role: Creator & maintainer
+start: "2026-10"
+stack: [Claude Code, Node.js, JavaScript]
+links:
+  repo: https://github.com/itsrob00/devflow
+---
+
+## Problem
+
+I'd been using Matt Pocock's skills and Lauren Tan's pstack in Claude Code for a while, and both are excellent. Together they're also a lot: dozens of skills, each good at one thing, and the hard part was knowing which one to run next. A feature wants a design interview before any code. A bug wants a failing test before a fix. A migration needs a plan that outlives one session. I kept picking the order by hand, and on a busy day I'd skip the steps that matter most, like the review or proving the change in the running app.
+
+## Approach
+
+devflow puts both collections behind one command:
+
+```
+/devflow:start <what you want done>
+```
+
+It sorts the task into one of four flows (a feature, a bug, a multi-session job or a small change), then runs that flow's skills in order and stops whenever a step needs my decision. A feature goes from understanding the code, through a grilling session that records decisions, to design, test-driven build, review and a PR body. A bug gets a red reproduction and a regression test before the fix.
+
+A few choices shaped it:
+
+- **It doesn't copy anyone's skills.** Its marketplace installs the skills it runs straight from the upstream repos and keeps them in sync, so improvements upstream reach devflow without me touching anything. Skills it doesn't use stay out, including the ones that would clash.
+- **Setup runs once per repo.** `/devflow:setup` asks all its questions at once, shows every draft for one review, then does the rest without stopping.
+- **Git stays mine.** A safety hook blocks pushes and anything that throws work away, and gives me the command to run instead.
+- **Work can span sessions.** A long feature ends in tickets, each built in a fresh session with `/devflow:start ticket <ref>`, and a big job hands off between sessions with a file that says exactly where to pick up.
+
+## Outcome
+
+I use devflow every day, at work and on my own projects. This site was planned and built with it, one ticket at a time. It's open source under the MIT license, and installing it takes three commands:
+
+```
+/plugin marketplace add itsrob00/devflow
+/plugin install devflow@devflow
+/devflow:setup
+```
+
+## Credits
+
+devflow is an orchestration layer. The skills doing the real work are [Matt Pocock's skills](https://github.com/mattpocock/skills) and Lauren Tan's [pstack](https://github.com/backnotprop/pstack), both MIT-licensed. devflow is my way of running them together.

@@ -1,4 +1,20 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+// Next 16.4's static export writes segment prefetches as __next.<seg>/__PAGE__.txt but requests
+// __next.<seg>.__PAGE__.txt. Navigation falls back to the full payload; ticket 11 checks production.
+const KNOWN_PREFETCH_404 = /\/__next\.[^/]+\.__PAGE__\.txt/;
+
+/** Console errors and uncaught exceptions, minus the known prefetch 404s. */
+function trackErrors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    if (KNOWN_PREFETCH_404.test(message.location().url)) return;
+    errors.push(message.text());
+  });
+  page.on("pageerror", (error) => errors.push(error.message));
+  return errors;
+}
 
 // The visitor's OS asks for light; the site must still open dark.
 test.use({ colorScheme: "light" });
@@ -11,11 +27,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("home loads with no console errors", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
-  });
-  page.on("pageerror", (error) => errors.push(error.message));
+  const errors = trackErrors(page);
 
   await page.goto("/");
   await expect(
@@ -137,4 +149,43 @@ test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
   await page.goto("/");
   await expect(page.getByRole("navigation", { name: "Sections" })).toBeHidden();
+});
+
+test("a Selected Work card opens its Project page, which links back home", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+
+  await page.goto("/");
+  const work = page.getByRole("region", { name: "Selected Work" });
+  await expect(work.getByText("Open source · 2026")).toBeVisible();
+  // The whole card is the link: a real click on the summary text lands on the link's overlay.
+  const summary = await work
+    .getByText(/^A Claude Code plugin that plans, builds, checks and proves/)
+    .boundingBox();
+  if (!summary) throw new Error("summary not rendered");
+  await page.mouse.click(
+    summary.x + summary.width / 2,
+    summary.y + summary.height / 2,
+  );
+
+  await expect(page).toHaveURL(/\/projects\/devflow$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "devflow" }),
+  ).toBeVisible();
+  await expect(page.getByText("Creator & maintainer")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Repository ↗" }),
+  ).toHaveAttribute("href", "https://github.com/itsrob00/devflow");
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Problem" }),
+  ).toBeVisible();
+  // remark-frontmatter keeps the YAML block out of the body.
+  await expect(page.getByText(/^slug: devflow/)).toHaveCount(0);
+  await expect(page.locator("article hr")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "← Rob" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.waitForLoadState("networkidle");
+  expect(errors).toEqual([]);
 });

@@ -5,6 +5,23 @@ import nextTs from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // Projects are read only through lib/projects.ts, which validates them.
+    ignores: ["lib/projects.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/content/projects/*", "**/content/projects/*"],
+              message: "Read Projects through @/lib/projects.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".scratch/**",
     "content-source/**",
