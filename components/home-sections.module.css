@@ -7,6 +7,75 @@
   margin-top: 14px;
 }
 
+.work {
+  display: grid;
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.card:hover,
+.card:has(.cardLink:focus-visible) {
+  border-color: var(--accent);
+}
+
+/* The focus ring goes round the whole card, which is what the link covers. */
+.card:has(.cardLink:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.cardLink:focus-visible {
+  outline: none;
+}
+
+.cardLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.kicker {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.cardTitle {
+  margin: 10px 0 8px;
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.summary {
+  margin-bottom: 20px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+/* Lift and glow only when motion is welcome; the glow isn't a transform, so it needs its own guard. */
+@media (prefers-reduced-motion: no-preference) {
+  .card {
+    transition:
+      border-color 0.2s,
+      transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.3s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+}
+
 .experience {
   list-style: none;
 }
