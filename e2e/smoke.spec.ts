@@ -1,8 +1,19 @@
+import { readFile } from "node:fs/promises";
 import { expect, test, type Page } from "@playwright/test";
 
 // Next 16.4's static export writes segment prefetches as __next.<seg>/__PAGE__.txt but requests
 // __next.<seg>.__PAGE__.txt. Navigation falls back to the full payload; ticket 11 checks production.
 const KNOWN_PREFETCH_404 = /\/__next\.[^/]+\.__PAGE__\.txt/;
+
+/** One page, sized by the stylesheet's @page: A4 is 595 × 842 points. */
+function expectOneA4Page(pdf: Buffer) {
+  const text = pdf.toString("latin1");
+  expect(text.match(/\/Type\s*\/Page(?!s)/g) ?? []).toHaveLength(1);
+  const [, width, height] =
+    text.match(/\/MediaBox\s*\[0 0 ([\d.]+) ([\d.]+)\]/) ?? [];
+  expect(Math.round(Number(width))).toBe(595);
+  expect(Math.round(Number(height))).toBe(842);
+}
 
 /** Console errors and uncaught exceptions, minus the known prefetch 404s. */
 function trackErrors(page: Page): string[] {
@@ -266,6 +277,7 @@ for (const theme of ["dark", "light"] as const) {
       "rgb(255, 255, 255)",
     );
     await expect(page.getByRole("link", { name: "← Rob" })).toBeHidden();
+    await expect(page.getByRole("link", { name: "Download PDF" })).toBeHidden();
 
     // Accent only on links: every other piece of text is a shade of grey.
     const colours = await page.locator("article").evaluate((article) => {
@@ -300,14 +312,28 @@ for (const theme of ["dark", "light"] as const) {
       expect(href).toMatch(/^(https:\/\/|mailto:)/);
     }
 
-    // The page size comes from the stylesheet's @page: A4 is 595 × 842 points.
-    const pdf = (await page.pdf({ preferCSSPageSize: true })).toString(
-      "latin1",
-    );
-    expect(pdf.match(/\/Type\s*\/Page(?!s)/g) ?? []).toHaveLength(1);
-    const [, width, height] =
-      pdf.match(/\/MediaBox\s*\[0 0 ([\d.]+) ([\d.]+)\]/) ?? [];
-    expect(Math.round(Number(width))).toBe(595);
-    expect(Math.round(Number(height))).toBe(842);
+    expectOneA4Page(await page.pdf({ preferCSSPageSize: true }));
   });
 }
+
+test("the Résumé PDF downloads as Rob-Resume.pdf, and nothing else links to it", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+
+  for (const route of ["/", "/projects/devflow"]) {
+    await page.goto(route);
+    await expect(page.locator('a[href$=".pdf"]')).toHaveCount(0);
+  }
+
+  await page.goto("/resume");
+  await expect(page.locator('a[href$=".pdf"]')).toHaveCount(1);
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Download PDF" }).click();
+  const download = await downloading;
+
+  expect(download.suggestedFilename()).toBe("Rob-Resume.pdf");
+  // The committed file, not a fresh print.
+  expectOneA4Page(await readFile(await download.path()));
+  expect(errors).toEqual([]);
+});

@@ -1,6 +1,26 @@
 /* Screen: the site's look. Print: compact pt sizes for one A4 page, Satoshi only, and nothing but
    links uses var(--accent). The black-on-white tokens and @page live in app/globals.css. */
 
+/* On the "← Rob" line, at the right. */
+.download {
+  float: right;
+  margin-top: -7px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.download:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .header {
   display: grid;
   gap: 6px;
@@ -99,6 +119,10 @@
 }
 
 @media print {
+  .download {
+    display: none;
+  }
+
   .resume {
     font-family: var(--font-sans);
     font-size: 9.5pt;
