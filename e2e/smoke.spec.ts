@@ -65,7 +65,7 @@ test("theme starts dark, switches to light and stays light", async ({
   await expect(html).toHaveAttribute("data-theme", "light");
 });
 
-test("section nav, contact links and theme toggle are reachable by keyboard, with visible focus", async ({
+test("section nav, contact links, the Résumé link and theme toggle are reachable by keyboard, with visible focus", async ({
   page,
 }) => {
   await page.goto("/");
@@ -253,11 +253,11 @@ for (const theme of ["dark", "light"] as const) {
   test(`the Résumé prints black on white on one A4 page from the ${theme} theme`, async ({
     page,
   }) => {
+    await page.goto("/");
+    if (theme === "light") {
+      await page.getByRole("button", { name: "Switch to light theme" }).click();
+    }
     await page.goto("/resume");
-    await page.evaluate((choice) => {
-      if (choice === "light") localStorage.setItem("theme", "light");
-    }, theme);
-    await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 
     await page.emulateMedia({ media: "print" });
@@ -300,8 +300,14 @@ for (const theme of ["dark", "light"] as const) {
       expect(href).toMatch(/^(https:\/\/|mailto:)/);
     }
 
-    const pdf = await page.pdf({ preferCSSPageSize: true });
-    const pages = pdf.toString("latin1").match(/\/Type\s*\/Page(?!s)/g) ?? [];
-    expect(pages).toHaveLength(1);
+    // The page size comes from the stylesheet's @page: A4 is 595 × 842 points.
+    const pdf = (await page.pdf({ preferCSSPageSize: true })).toString(
+      "latin1",
+    );
+    expect(pdf.match(/\/Type\s*\/Page(?!s)/g) ?? []).toHaveLength(1);
+    const [, width, height] =
+      pdf.match(/\/MediaBox\s*\[0 0 ([\d.]+) ([\d.]+)\]/) ?? [];
+    expect(Math.round(Number(width))).toBe(595);
+    expect(Math.round(Number(height))).toBe(842);
   });
 }

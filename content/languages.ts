@@ -1,4 +1,4 @@
-/** LinkedIn's proficiency scale, in sentence case, so the Résumé matches the profile. */
+/** LinkedIn's proficiency scale, so a typo or an invented level fails the type check. Sentence case, as in the site's copy. */
 export type Proficiency =
   | "Elementary"
   | "Limited working"

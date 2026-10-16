@@ -128,8 +128,8 @@ export default function ResumePage() {
 function Section({ title, children }: { title: string; children: ReactNode }) {
   const id = title.toLowerCase();
   return (
-    <section aria-labelledby={id} className={styles.section}>
-      <h2 id={id} className={styles.heading}>
+    <section id={id} aria-labelledby={`${id}-title`} className={styles.section}>
+      <h2 id={`${id}-title`} className={styles.heading}>
         {title}
       </h2>
       {children}
