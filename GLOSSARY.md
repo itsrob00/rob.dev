@@ -17,11 +17,11 @@ A dated piece of writing on the blog. Not part of v1; it will sit alongside Proj
 _Avoid_: Article, blog entry
 
 **Selected Work**:
-The home-page section that lists a chosen subset of Projects.
+The home-page section that lists every Project, newest first, one card each.
 _Avoid_: Portfolio, showcase
 
 **Identity column**:
-The column that holds who Rob is: name, role, a one-line blurb, section nav, contact links and the local clock.
+The column that holds who Rob is: name, role, a one-line blurb, section nav, contact links, the Résumé link and the local clock.
 _Avoid_: Hero, left column, sidebar
 
 **Stack**:

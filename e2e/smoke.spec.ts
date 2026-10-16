@@ -65,13 +65,13 @@ test("theme starts dark, switches to light and stays light", async ({
   await expect(html).toHaveAttribute("data-theme", "light");
 });
 
-test("section nav, contact links and theme toggle are reachable by keyboard, with visible focus", async ({
+test("section nav, contact links, the Résumé link and theme toggle are reachable by keyboard, with visible focus", async ({
   page,
 }) => {
   await page.goto("/");
 
   const reached: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 9; i++) {
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus");
     await expect(focused).not.toHaveCSS("outline-style", "none");
@@ -88,6 +88,7 @@ test("section nav, contact links and theme toggle are reachable by keyboard, wit
     "Email",
     "LinkedIn",
     "GitHub",
+    "Résumé",
     "Switch to light theme",
   ]);
 });
@@ -189,3 +190,124 @@ test("a Selected Work card opens its Project page, which links back home", async
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
+
+test("the Résumé link opens the Résumé, built from the records, which links back home", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+
+  await page.goto("/");
+  await page.getByRole("link", { name: "Résumé", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/resume$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2 })).toHaveText([
+    "Summary",
+    "Experience",
+    "Projects",
+    "Stack",
+    "Languages",
+    "Education",
+  ]);
+
+  const contact = page.getByRole("list", { name: "Contact" });
+  await expect(contact.getByText("Gaeta, Italy")).toBeVisible();
+  await expect(
+    contact.getByRole("link", { name: "roberto.prats00@gmail.com" }),
+  ).toHaveAttribute("href", "mailto:roberto.prats00@gmail.com");
+  await expect(
+    contact.getByRole("link", { name: "itsrob.dev" }),
+  ).toHaveAttribute("href", "https://itsrob.dev");
+  await expect(
+    contact.getByRole("link", { name: "linkedin.com/in/robertoprats" }),
+  ).toHaveAttribute("href", "https://www.linkedin.com/in/robertoprats");
+  await expect(
+    contact.getByRole("link", { name: "github.com/itsrob00" }),
+  ).toHaveAttribute("href", "https://github.com/itsrob00");
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+
+  const main = page.getByRole("main");
+  await expect(
+    main.getByText(/^I build front ends for large platforms/),
+  ).toBeVisible();
+  await expect(
+    main.getByText("Exolab Srl, client Sisal via Reply", { exact: false }),
+  ).toBeVisible();
+  await expect(main.getByText("Jan – Dec 2025")).toBeVisible();
+  await expect(
+    main.getByRole("heading", { level: 3, name: /^devflow/ }),
+  ).toBeVisible();
+  await expect(main.getByText(/Claude Code/).first()).toBeVisible();
+  await expect(main.getByText(/English/)).toBeVisible();
+  await expect(main.getByText(/2014 – 2019/)).toBeVisible();
+
+  await page.getByRole("link", { name: "← Rob" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.waitForLoadState("networkidle");
+  expect(errors).toEqual([]);
+});
+
+for (const theme of ["dark", "light"] as const) {
+  test(`the Résumé prints black on white on one A4 page from the ${theme} theme`, async ({
+    page,
+  }) => {
+    await page.goto("/");
+    if (theme === "light") {
+      await page.getByRole("button", { name: "Switch to light theme" }).click();
+    }
+    await page.goto("/resume");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+
+    await page.emulateMedia({ media: "print" });
+    await expect(page.locator("body")).toHaveCSS(
+      "background-color",
+      "rgb(255, 255, 255)",
+    );
+    await expect(page.getByRole("link", { name: "← Rob" })).toBeHidden();
+
+    // Accent only on links: every other piece of text is a shade of grey.
+    const colours = await page.locator("article").evaluate((article) => {
+      const grey = (colour: string) => {
+        const [r, g, b] = colour.match(/\d+/g)!.map(Number);
+        return r === g && g === b;
+      };
+      const offenders: string[] = [];
+      let colouredLinks = 0;
+      for (const element of article.querySelectorAll("*")) {
+        const ownText = [...element.childNodes].some(
+          (node) =>
+            node.nodeType === Node.TEXT_NODE && node.textContent!.trim(),
+        );
+        if (!ownText) continue;
+        const { color } = getComputedStyle(element);
+        if (element.closest("a")) {
+          if (!grey(color)) colouredLinks++;
+        } else if (!grey(color)) {
+          offenders.push(`${element.textContent!.slice(0, 30)}: ${color}`);
+        }
+      }
+      return { offenders, colouredLinks };
+    });
+    expect(colours.offenders).toEqual([]);
+    expect(colours.colouredLinks).toBeGreaterThan(0);
+
+    // The PDF is read away from this site, so no link may be relative.
+    for (const href of await page
+      .locator("article a")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href")))) {
+      expect(href).toMatch(/^(https:\/\/|mailto:)/);
+    }
+
+    // The page size comes from the stylesheet's @page: A4 is 595 × 842 points.
+    const pdf = (await page.pdf({ preferCSSPageSize: true })).toString(
+      "latin1",
+    );
+    expect(pdf.match(/\/Type\s*\/Page(?!s)/g) ?? []).toHaveLength(1);
+    const [, width, height] =
+      pdf.match(/\/MediaBox\s*\[0 0 ([\d.]+) ([\d.]+)\]/) ?? [];
+    expect(Math.round(Number(width))).toBe(595);
+    expect(Math.round(Number(height))).toBe(842);
+  });
+}

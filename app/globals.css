@@ -56,6 +56,31 @@ ul {
   border-radius: 4px;
 }
 
+/* Every page prints black on white on A4, whatever the theme. html[data-theme] out-specifies both
+   theme blocks; the body rule must follow the one above. Only links use the accent in print. */
+@media print {
+  :root,
+  html[data-theme] {
+    --bg: #fff;
+    --fg: #000;
+    --muted: #444;
+    --line: #bbb;
+    --card: #fff;
+    --accent: #15803d;
+    color-scheme: light;
+  }
+
+  /* 100vh is a whole page box in print: a nearly full page would spill onto a blank second one. */
+  body {
+    min-height: 0;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 14mm 16mm;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

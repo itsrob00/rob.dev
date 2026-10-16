@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { profile } from "@/content/profile";
 import { GaetaClock } from "./gaeta-clock";
 import { SectionNav, type NavItem } from "./section-nav";
@@ -27,6 +28,9 @@ export function IdentityColumn({ nav }: { nav: readonly NavItem[] }) {
             <a href={profile.github} rel="me">
               GitHub
             </a>
+          </li>
+          <li>
+            <Link href="/resume">Résumé</Link>
           </li>
         </ul>
         <div className={styles.meta}>

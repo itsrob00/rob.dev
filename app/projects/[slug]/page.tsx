@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { OneColumnPage } from "@/components/one-column-page";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
 import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
@@ -29,10 +29,7 @@ export default async function ProjectPage({
   const { repo, live } = project.links;
 
   return (
-    <main className={styles.page}>
-      <Link href="/" className={styles.back}>
-        ← Rob
-      </Link>
+    <OneColumnPage>
       <article>
         <header className={styles.header}>
           <p className={styles.kicker}>{project.kicker}</p>
@@ -67,6 +64,6 @@ export default async function ProjectPage({
           <Body />
         </div>
       </article>
-    </main>
+    </OneColumnPage>
   );
 }
