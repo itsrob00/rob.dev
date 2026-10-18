@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { experience } from "@/content/experience";
 import { profile } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
 import { getProjects } from "@/lib/projects";
+import { LiftItem } from "./motion";
+import { NavLink, SharedTitle } from "./route-transition";
 import { StackTags } from "./stack-tags";
 import styles from "./home-sections.module.css";
 
@@ -22,16 +23,22 @@ export function SelectedWork() {
   return (
     <ul className={styles.work}>
       {getProjects().map((project) => (
-        <li key={project.slug} className={styles.card}>
+        <LiftItem key={project.slug} className={styles.card}>
           <p className={styles.kicker}>{project.kicker}</p>
           <h3 className={styles.cardTitle}>
-            <Link href={project.href} className={styles.cardLink}>
-              {project.title}
-            </Link>
+            <SharedTitle slug={project.slug}>
+              <NavLink
+                href={project.href}
+                direction="forward"
+                className={styles.cardLink}
+              >
+                {project.title}
+              </NavLink>
+            </SharedTitle>
           </h3>
           <p className={styles.summary}>{project.summary}</p>
           <StackTags stack={project.stack} />
-        </li>
+        </LiftItem>
       ))}
     </ul>
   );

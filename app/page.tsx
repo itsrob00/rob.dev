@@ -6,6 +6,8 @@ import {
   StackList,
 } from "@/components/home-sections";
 import { IdentityColumn } from "@/components/identity-column";
+import { FadeUp } from "@/components/motion";
+import { PageTransition } from "@/components/route-transition";
 import type { NavItem } from "@/components/section-nav";
 import styles from "./page.module.css";
 
@@ -31,23 +33,28 @@ const nav = sections
 
 export default function Home() {
   return (
-    <div className={styles.grid}>
-      <IdentityColumn nav={nav} />
-      <main className={styles.main}>
-        {sections.map(({ id, title, Body }) => (
-          <section
-            key={id}
-            id={id}
-            aria-labelledby={`${id}-title`}
-            className={styles.section}
-          >
-            <h2 id={`${id}-title`} className={styles.title}>
-              {title}
-            </h2>
-            <Body />
-          </section>
-        ))}
-      </main>
-    </div>
+    <PageTransition>
+      <div className={styles.grid}>
+        <IdentityColumn nav={nav} />
+        <main className={styles.main}>
+          {sections.map(({ id, title, Body }) => (
+            <section
+              key={id}
+              id={id}
+              aria-labelledby={`${id}-title`}
+              className={styles.section}
+            >
+              {/* The content rises, not the <section>: scroll-spy measures where sections are. */}
+              <FadeUp inView>
+                <h2 id={`${id}-title`} className={styles.title}>
+                  {title}
+                </h2>
+                <Body />
+              </FadeUp>
+            </section>
+          ))}
+        </main>
+      </div>
+    </PageTransition>
   );
 }

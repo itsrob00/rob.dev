@@ -20,7 +20,6 @@
   background: var(--card);
 }
 
-.card:hover,
 .card:has(.cardLink:focus-visible) {
   border-color: var(--accent);
 }
@@ -61,17 +60,17 @@
   line-height: 1.7;
 }
 
-/* Lift and glow only when motion is welcome; the glow isn't a transform, so it needs its own guard. */
+/* The glow, only when motion is welcome. The lift is Lift's (components/motion.tsx), so nothing here
+ * may set or transition transform. */
 @media (prefers-reduced-motion: no-preference) {
   .card {
     transition:
       border-color 0.2s,
-      transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
       box-shadow 0.3s;
   }
 
   .card:hover {
-    transform: translateY(-4px);
+    border-color: var(--accent);
     box-shadow: 0 12px 40px color-mix(in srgb, var(--accent) 14%, transparent);
   }
 }
