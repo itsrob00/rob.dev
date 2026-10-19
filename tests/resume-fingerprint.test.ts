@@ -186,3 +186,24 @@ describe("checkResumePdf", () => {
     });
   });
 });
+
+// Against this repo, not a mini one: which of the site's own files can make the Résumé PDF stale.
+describe("the Résumé's inputs in this repo", () => {
+  const inputs = [
+    ...fingerprintResume(path.join(import.meta.dirname, "..")).keys(),
+  ];
+
+  test("include the page metadata rules, which set the Résumé's title", () => {
+    expect(inputs).toContain("lib/site-metadata.ts");
+  });
+
+  test("leave out the sharing images, icons, JSON-LD, sitemap and robots", () => {
+    expect(inputs).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(
+          /opengraph-image|icon\.tsx|share-images|theme-tokens|person-json-ld|sitemap|robots/,
+        ),
+      ]),
+    );
+  });
+});

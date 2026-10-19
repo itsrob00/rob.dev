@@ -8,16 +8,20 @@ import { profile } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange, formatYearSpan } from "@/lib/date-range";
 import { getProjects } from "@/lib/projects";
+import { homeCard, pageMetadata } from "@/lib/site-metadata";
 import styles from "./page.module.css";
 
 // The Résumé renders its own markup rather than the home components: their accent pills and
 // kickers would break "accent only on links" in print. Every link here is absolute (or mailto),
 // because the printed PDF is read away from this site.
 
-export const metadata: Metadata = {
+// No sharing image of its own: it reuses home's.
+export const metadata: Metadata = pageMetadata({
+  path: "/resume",
   title: "Résumé",
   description: `Résumé of ${profile.name}, ${profile.role} based in ${profile.location}.`,
-};
+  card: homeCard,
+});
 
 export default function ResumePage() {
   return (

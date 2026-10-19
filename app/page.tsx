@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
   About,
@@ -9,7 +10,17 @@ import { IdentityColumn } from "@/components/identity-column";
 import { FadeUp } from "@/components/motion";
 import { PageTransition } from "@/components/route-transition";
 import type { NavItem } from "@/components/section-nav";
+import { profile } from "@/content/profile";
+import { personJsonLd } from "@/lib/person-json-ld";
+import { homeCard, pageMetadata } from "@/lib/site-metadata";
 import styles from "./page.module.css";
+
+// No title: home takes the layout's default.
+export const metadata: Metadata = pageMetadata({
+  path: "/",
+  description: profile.blurb,
+  card: homeCard,
+});
 
 // id: the element id, URL hash and nav link target. title: the <h2> and the nav label.
 type HomeSection = NavItem & {
@@ -34,6 +45,11 @@ const nav = sections
 export default function Home() {
   return (
     <PageTransition>
+      {/* Home only: the Person behind the site, for search engines. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: personJsonLd(profile) }}
+      />
       <div className={styles.grid}>
         <IdentityColumn nav={nav} />
         <main className={styles.main}>
