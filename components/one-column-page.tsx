@@ -1,18 +1,20 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { NavLink, PageTransition } from "./route-transition";
 import styles from "./one-column-page.module.css";
 
 /**
  * The shell for every page that isn't home (Project pages, the Résumé): one centred column with
- * "← Rob" at the top. It owns the chrome that never prints.
+ * "← Rob" at the top. It owns the chrome that never prints, and the page's route transition.
  */
 export function OneColumnPage({ children }: { children: ReactNode }) {
   return (
-    <main className={styles.page}>
-      <Link href="/" className={styles.back}>
-        ← Rob
-      </Link>
-      {children}
-    </main>
+    <PageTransition>
+      <main className={styles.page}>
+        <NavLink href="/" direction="back" className={styles.back}>
+          ← Rob
+        </NavLink>
+        {children}
+      </main>
+    </PageTransition>
   );
 }

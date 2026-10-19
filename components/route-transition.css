@@ -1,0 +1,96 @@
+/* Route transitions. Class names are the vocabulary in lib/route-transitions.ts, and
+ * tests/route-transitions.test.ts fails when they disagree. A class names the navigation and the
+ * pseudo-element names the side: -old is the page leaving, -new the page arriving.
+ * Global on purpose: the ::view-transition-* pseudo-elements hang off <html>, out of a module's reach. */
+
+/* Clicks during a transition reach the live page, not the overlay. */
+::view-transition {
+  pointer-events: none;
+}
+
+/* Forward (home → Project or Résumé): the old page leaves to the left, the new one comes from the right. */
+::view-transition-old(.nav-forward) {
+  animation:
+    260ms ease-in both route-fade-out,
+    260ms ease-in both route-to-left;
+}
+
+::view-transition-new(.nav-forward) {
+  animation:
+    260ms ease-out both route-fade-in,
+    260ms ease-out both route-from-right;
+}
+
+/* Back ("← Rob"): mirrored. */
+::view-transition-old(.nav-back) {
+  animation:
+    260ms ease-in both route-fade-out,
+    260ms ease-in both route-to-right;
+}
+
+::view-transition-new(.nav-back) {
+  animation:
+    260ms ease-out both route-fade-in,
+    260ms ease-out both route-from-left;
+}
+
+/* A navigation with no type crossfades. */
+::view-transition-old(.crossfade) {
+  animation: 160ms ease-in both route-fade-out;
+}
+
+::view-transition-new(.crossfade) {
+  animation: 220ms ease-out 60ms both route-fade-in;
+}
+
+/* A Project title gliding between its card and its page heading. */
+::view-transition-group(.morph) {
+  animation-duration: 350ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes route-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes route-from-right {
+  from {
+    translate: 40px 0;
+  }
+}
+
+@keyframes route-to-left {
+  to {
+    translate: -40px 0;
+  }
+}
+
+@keyframes route-from-left {
+  from {
+    translate: -40px 0;
+  }
+}
+
+@keyframes route-to-right {
+  to {
+    translate: 40px 0;
+  }
+}
+
+/* Reduced motion: nothing animates, opacity included. The transition still runs for about a frame,
+ * so fade-ups waiting on it behave the same; it just has nothing to play. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

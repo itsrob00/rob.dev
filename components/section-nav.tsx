@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { pickActiveSection } from "@/lib/scroll-spy";
+import { Glide } from "./motion";
 import styles from "./section-nav.module.css";
 
 export type NavItem = { id: string; title: string };
@@ -66,7 +67,7 @@ export function SectionNav({ items }: { items: readonly NavItem[] }) {
   );
 }
 
-/** The one element that moves between links. Ticket 08 animates it with Motion's layoutId. */
+/** The one element that moves between links: it mounts under the active one and slides across. */
 function Marker() {
-  return <span className={styles.marker} />;
+  return <Glide id="spy-marker" className={styles.marker} />;
 }

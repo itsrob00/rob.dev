@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OneColumnPage } from "@/components/one-column-page";
+import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
 import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
@@ -33,7 +34,9 @@ export default async function ProjectPage({
       <article>
         <header className={styles.header}>
           <p className={styles.kicker}>{project.kicker}</p>
-          <h1 className={styles.title}>{project.title}</h1>
+          <h1 className={styles.title}>
+            <SharedTitle slug={project.slug}>{project.title}</SharedTitle>
+          </h1>
           <p className={styles.summary}>{project.summary}</p>
           <dl className={styles.facts}>
             <div>
