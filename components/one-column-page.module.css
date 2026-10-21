@@ -4,16 +4,25 @@
   padding: 64px 32px 160px;
 }
 
+.chrome,
 .back {
-  display: inline-block;
-  margin-bottom: 48px;
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 13px;
 }
 
+.chrome:hover,
 .back:hover {
   color: var(--accent);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 48px;
+}
+
+.footer {
+  margin-top: 96px;
 }
 
 @media (max-width: 560px) {
@@ -28,7 +37,8 @@
     padding: 0;
   }
 
-  .back {
+  .back,
+  .footer {
     display: none;
   }
 }

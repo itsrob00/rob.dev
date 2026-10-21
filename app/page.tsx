@@ -9,6 +9,7 @@ import {
 import { IdentityColumn } from "@/components/identity-column";
 import { FadeUp } from "@/components/motion";
 import { PageTransition } from "@/components/route-transition";
+import { PrivacyNotice } from "@/components/privacy-notice";
 import type { NavItem } from "@/components/section-nav";
 import { profile } from "@/content/profile";
 import { personJsonLd } from "@/lib/person-json-ld";
@@ -24,7 +25,7 @@ export const metadata: Metadata = pageMetadata({
 
 // id: the element id, URL hash and nav link target. title: the <h2> and the nav label.
 type HomeSection = NavItem & {
-  /** Listed in the section nav. Required, so each new section decides (the Privacy notice won't be). */
+  /** Listed in the section nav. Required, so each new section decides (the Privacy notice isn't). */
   inNav: boolean;
   Body: () => ReactNode;
 };
@@ -35,6 +36,7 @@ const sections = [
   { id: "work", title: "Selected Work", inNav: true, Body: SelectedWork },
   { id: "experience", title: "Experience", inNav: true, Body: ExperienceList },
   { id: "stack", title: "Stack", inNav: true, Body: StackList },
+  { id: "privacy", title: "Privacy", inNav: false, Body: PrivacyNotice },
 ] satisfies readonly HomeSection[];
 
 // Only plain data crosses to the client nav: Body is a function and can't.
