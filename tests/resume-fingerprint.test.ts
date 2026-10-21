@@ -206,4 +206,13 @@ describe("the Résumé's inputs in this repo", () => {
       ]),
     );
   });
+
+  test("include the Stack but leave out its brand marks and the home components", () => {
+    expect(inputs).toContain("content/stack.ts");
+    expect(inputs).not.toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/technology|home-sections|stack-tags/),
+      ]),
+    );
+  });
 });

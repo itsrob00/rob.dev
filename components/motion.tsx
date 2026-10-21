@@ -61,12 +61,12 @@ export function FadeUp({
   children: ReactNode;
   inView?: boolean;
   stagger?: boolean;
-  /** "header" lets the Identity column be its own stagger container. */
-  as?: "div" | "header";
+  /** "header" and "ul" let the Identity column and the Stack list be their own stagger containers. */
+  as?: "div" | "header" | "ul";
   className?: string;
 }) {
-  // Typed as a div so it fits both tags' ref; only HTMLElement members are used.
-  const [scope, animate] = useAnimate<HTMLDivElement>();
+  // Typed as every tag at once so it fits each one's ref; only HTMLElement members are used.
+  const [scope, animate] = useAnimate<HTMLDivElement & HTMLUListElement>();
   const [phase, setPhase] = useState<Phase>("pending");
   const arrival = useRef<Promise<void>>(null);
   const seen = useInView(scope, { once: true, margin: "0px 0px -10% 0px" });

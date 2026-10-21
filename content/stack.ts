@@ -6,6 +6,6 @@ export const stack = [
   "Tailwind CSS",
   "Vite",
   "Vitest",
-  "Jest",
+  "Playwright",
   "Claude Code",
 ] as const satisfies readonly string[];

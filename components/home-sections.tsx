@@ -3,9 +3,10 @@ import { profile } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
 import { getProjects } from "@/lib/projects";
-import { LiftItem } from "./motion";
+import { FadeUp, LiftItem } from "./motion";
 import { NavLink, SharedTitle } from "./route-transition";
 import { StackTags } from "./stack-tags";
+import { Technology } from "./technology";
 import styles from "./home-sections.module.css";
 
 // The bodies of the home page's sections. app/page.tsx wraps each in its <section> and <h2>.
@@ -67,10 +68,12 @@ export function ExperienceList() {
 
 export function StackList() {
   return (
-    <ul className={styles.stack}>
+    <FadeUp as="ul" inView stagger className={styles.stack}>
       {stack.map((item) => (
-        <li key={item}>{item}</li>
+        <li key={item} className={styles.tile}>
+          <Technology name={item} markSize={28} />
+        </li>
       ))}
-    </ul>
+    </FadeUp>
   );
 }
