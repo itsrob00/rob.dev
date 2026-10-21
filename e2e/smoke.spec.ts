@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 // Next 16.4's static export writes segment prefetches as __next.<seg>/__PAGE__.txt but requests
 // __next.<seg>.__PAGE__.txt. Navigation falls back to the full payload; ticket 11 checks production.
@@ -161,6 +161,66 @@ test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
   await page.goto("/");
   await expect(page.getByRole("navigation", { name: "Sections" })).toBeHidden();
+});
+
+// Fade-ups hide content until it rises, so these check it can't stay hidden. Not motion tests:
+// none depends on timing, only on where the content ends up.
+
+/** Opacity as painted: the element's own times every ancestor's. */
+function paintedOpacity(locator: Locator) {
+  return locator.evaluate((element) => {
+    let opacity = 1;
+    for (let node: Element | null = element; node; node = node.parentElement)
+      opacity *= Number(getComputedStyle(node).opacity);
+    return opacity;
+  });
+}
+
+/** Content from the Identity column and each home section, top to bottom. */
+function homeContent(page: Page) {
+  return [
+    page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
+    page.getByRole("heading", { level: 2, name: "About" }),
+    page.getByRole("heading", { level: 3, name: "devflow" }),
+    page.getByRole("heading", { level: 2, name: "Experience" }),
+    page.getByRole("heading", { level: 2, name: "Stack" }),
+  ];
+}
+
+test("every home section is visible once scrolled into view", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const content of homeContent(page)) {
+    await content.scrollIntoViewIfNeeded();
+    await expect.poll(() => paintedOpacity(content)).toBe(1);
+  }
+});
+
+test.describe("under reduced motion", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("home content is visible at first paint, before any script runs", async ({
+    page,
+  }) => {
+    // Scripts only: the stylesheet that would hide the content is a chunk too, and has to load.
+    await page.route("**/*.js", (route) => route.abort());
+    await page.goto("/");
+    for (const content of homeContent(page)) {
+      expect(await paintedOpacity(content)).toBe(1);
+    }
+  });
+});
+
+test.describe("with JavaScript off", () => {
+  test.use({ javaScriptEnabled: false });
+
+  test("home content is visible", async ({ page }) => {
+    await page.goto("/");
+    for (const content of homeContent(page)) {
+      expect(await paintedOpacity(content)).toBe(1);
+    }
+  });
 });
 
 test("a Selected Work card opens its Project page, which links back home", async ({
