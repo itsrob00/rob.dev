@@ -11,7 +11,11 @@ export function OneColumnPage({ children }: { children: ReactNode }) {
   return (
     <PageTransition>
       <main className={styles.page}>
-        <NavLink href="/" direction="back" className={styles.back}>
+        <NavLink
+          href="/"
+          direction="back"
+          className={`${styles.chrome} ${styles.back}`}
+        >
           ← Rob
         </NavLink>
         {children}

@@ -4,15 +4,14 @@
   padding: 64px 32px 160px;
 }
 
-.chrome,
-.back {
+/* The links around the content: "← Rob" and the Privacy link. */
+.chrome {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 13px;
 }
 
-.chrome:hover,
-.back:hover {
+.chrome:hover {
   color: var(--accent);
 }
 

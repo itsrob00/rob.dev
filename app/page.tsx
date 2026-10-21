@@ -8,8 +8,8 @@ import {
 } from "@/components/home-sections";
 import { IdentityColumn } from "@/components/identity-column";
 import { FadeUp } from "@/components/motion";
-import { PageTransition } from "@/components/route-transition";
 import { PrivacyNotice } from "@/components/privacy-notice";
+import { PageTransition } from "@/components/route-transition";
 import type { NavItem } from "@/components/section-nav";
 import { profile } from "@/content/profile";
 import { personJsonLd } from "@/lib/person-json-ld";
