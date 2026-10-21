@@ -1,22 +1,18 @@
-/* Muted and a size down from the other sections: it's there to be found, not read first. */
+/* Muted and small: it's there to be found, not read. */
 .notice {
   max-width: 60ch;
-  padding-top: 24px;
+  padding-top: 16px;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 13.5px;
-  line-height: 1.7;
+  font-size: 12.5px;
+  line-height: 1.6;
+  scroll-margin-top: 72px;
 }
 
-.notice p + p {
-  margin-top: 12px;
-}
-
-.heading {
-  margin: 24px 0 6px;
-  color: var(--fg);
-  font-size: inherit;
-  font-weight: 500;
+.label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .link {
@@ -26,10 +22,4 @@
 
 .link:hover {
   color: var(--accent);
-}
-
-.updated {
-  margin-top: 24px;
-  font-family: var(--font-mono);
-  font-size: 12px;
 }
