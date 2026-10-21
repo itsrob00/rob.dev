@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { jetbrainsMono, satoshi } from "./fonts";
+import { rootMetadata } from "@/lib/site-metadata";
 import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "Rob | Front-end Engineer & Tech Lead",
-};
+export const metadata: Metadata = rootMetadata;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

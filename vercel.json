@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/(opengraph-image|icon|apple-icon)",
+      "headers": [{ "key": "Content-Type", "value": "image/png" }]
+    },
+    {
+      "source": "/projects/:slug/opengraph-image",
+      "headers": [{ "key": "Content-Type", "value": "image/png" }]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.itsrob.dev" }],
+      "destination": "https://itsrob.dev/:path*",
+      "permanent": true
+    }
+  ]
+}

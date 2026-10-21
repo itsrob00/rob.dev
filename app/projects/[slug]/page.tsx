@@ -5,6 +5,7 @@ import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
 import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
+import { pageMetadata, projectCard } from "@/lib/site-metadata";
 import styles from "./page.module.css";
 
 // Static export: one page per Project, and any other slug is a 404.
@@ -18,7 +19,14 @@ export async function generateMetadata({
   params,
 }: PageProps<"/projects/[slug]">): Promise<Metadata> {
   const project = getProject((await params).slug);
-  return project ? { title: project.title, description: project.summary } : {};
+  return project
+    ? pageMetadata({
+        path: project.href,
+        title: project.title,
+        description: project.summary,
+        card: projectCard(project),
+      })
+    : {};
 }
 
 export default async function ProjectPage({
