@@ -25,24 +25,19 @@ export const metadata: Metadata = pageMetadata({
 
 // id: the element id, URL hash and nav link target. title: the <h2> and the nav label.
 type HomeSection = NavItem & {
-  /** Listed in the section nav. Required, so each new section decides (the Privacy notice isn't). */
-  inNav: boolean;
   Body: () => ReactNode;
 };
 
-// The one list of home sections: <main> renders it in order and the nav takes the inNav ones.
+// The one list of home sections: <main> renders it in order and the nav lists each one.
 const sections = [
-  { id: "about", title: "About", inNav: true, Body: About },
-  { id: "work", title: "Selected Work", inNav: true, Body: SelectedWork },
-  { id: "experience", title: "Experience", inNav: true, Body: ExperienceList },
-  { id: "stack", title: "Stack", inNav: true, Body: StackList },
-  { id: "privacy", title: "Privacy", inNav: false, Body: PrivacyNotice },
+  { id: "about", title: "About", Body: About },
+  { id: "work", title: "Selected Work", Body: SelectedWork },
+  { id: "experience", title: "Experience", Body: ExperienceList },
+  { id: "stack", title: "Stack", Body: StackList },
 ] satisfies readonly HomeSection[];
 
 // Only plain data crosses to the client nav: Body is a function and can't.
-const nav = sections
-  .filter((section) => section.inNav)
-  .map(({ id, title }) => ({ id, title }));
+const nav = sections.map(({ id, title }) => ({ id, title }));
 
 export default function Home() {
   return (
@@ -71,6 +66,7 @@ export default function Home() {
               </FadeUp>
             </section>
           ))}
+          <PrivacyNotice />
         </main>
       </div>
     </PageTransition>

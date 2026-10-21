@@ -37,5 +37,5 @@ The sha256 of every file the Résumé is built from and of its print settings. `
 _Avoid_: Checksum, hash file
 
 **Privacy notice**:
-The home-page section that tells visitors what the site and its host collect about them and what their rights are.
+The short note at the foot of the home page that tells visitors what the site and its host collect about them and where to send GDPR requests.
 _Avoid_: Privacy policy, cookie policy, cookie banner

@@ -184,7 +184,7 @@ test("a missing page shows a 404 in the site's look, with a way home", async ({
   ).toBeVisible();
 });
 
-test("the Privacy notice closes the home page, outside the section nav", async ({
+test("the Privacy notice is a note at the foot of the home page, outside the section nav", async ({
   page,
 }) => {
   await page.goto("/");
@@ -194,19 +194,13 @@ test("the Privacy notice closes the home page, outside the section nav", async (
     "Selected Work",
     "Experience",
     "Stack",
-    "Privacy",
   ]);
   const notice = page.locator("#privacy");
   await expect(notice).toHaveAccessibleName("Privacy");
+  await expect(notice.getByText(/No cookies/)).toBeVisible();
   await expect(
-    notice.getByRole("link", { name: "roberto.prats00@gmail.com" }).first(),
+    notice.getByRole("link", { name: "roberto.prats00@gmail.com" }),
   ).toHaveAttribute("href", "mailto:roberto.prats00@gmail.com");
-  await expect(notice.getByText(/Data Privacy Framework/)).toBeVisible();
-  await expect(notice.getByText(/Garante/).first()).toBeVisible();
-  // Vercel's DPA may not cover Hobby, so the notice must not promise SCCs.
-  await expect(notice.getByText(/standard contractual clauses/i)).toHaveCount(
-    0,
-  );
   await expect(
     page
       .getByRole("navigation", { name: "Sections" })
@@ -222,9 +216,7 @@ for (const route of ["/projects/devflow", "/resume"]) {
     await page.getByRole("link", { name: "Privacy", exact: true }).click();
 
     await expect(page).toHaveURL(/\/#privacy$/);
-    await expect(
-      page.getByRole("heading", { level: 2, name: "Privacy" }),
-    ).toBeInViewport();
+    await expect(page.locator("#privacy")).toBeInViewport();
     await page.waitForLoadState("networkidle");
     expect(errors).toEqual([]);
   });
@@ -257,7 +249,7 @@ function homeContent(page: Page) {
     page.getByRole("heading", { level: 3, name: "devflow" }),
     page.getByRole("heading", { level: 2, name: "Experience" }),
     page.getByRole("heading", { level: 2, name: "Stack" }),
-    page.getByRole("heading", { level: 2, name: "Privacy" }),
+    page.locator("#privacy"),
   ];
 }
 
