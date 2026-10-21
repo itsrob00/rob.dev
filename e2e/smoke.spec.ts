@@ -157,6 +157,52 @@ test("home sections show About, Experience and Stack from the records", async ({
   ]);
 });
 
+test("the Privacy notice closes the home page, outside the section nav", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const main = page.getByRole("main");
+  await expect(main.getByRole("heading", { level: 2 })).toHaveText([
+    "About",
+    "Selected Work",
+    "Experience",
+    "Stack",
+    "Privacy",
+  ]);
+  const notice = page.locator("#privacy");
+  await expect(notice).toHaveAccessibleName("Privacy");
+  await expect(
+    notice.getByRole("link", { name: "roberto.prats00@gmail.com" }).first(),
+  ).toHaveAttribute("href", "mailto:roberto.prats00@gmail.com");
+  await expect(notice.getByText(/Data Privacy Framework/)).toBeVisible();
+  await expect(notice.getByText(/Garante/).first()).toBeVisible();
+  // Vercel's DPA may not cover Hobby, so the notice must not promise SCCs.
+  await expect(notice.getByText(/standard contractual clauses/i)).toHaveCount(
+    0,
+  );
+  await expect(
+    page
+      .getByRole("navigation", { name: "Sections" })
+      .getByRole("link", { name: "Privacy" }),
+  ).toHaveCount(0);
+});
+
+for (const route of ["/projects/devflow", "/resume"]) {
+  test(`${route} links to the Privacy notice at its foot`, async ({ page }) => {
+    const errors = trackErrors(page);
+    await page.goto(route);
+
+    await page.getByRole("link", { name: "Privacy", exact: true }).click();
+
+    await expect(page).toHaveURL(/\/#privacy$/);
+    await expect(
+      page.getByRole("heading", { level: 2, name: "Privacy" }),
+    ).toBeInViewport();
+    await page.waitForLoadState("networkidle");
+    expect(errors).toEqual([]);
+  });
+}
+
 test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
   await page.goto("/");
@@ -184,6 +230,7 @@ function homeContent(page: Page) {
     page.getByRole("heading", { level: 3, name: "devflow" }),
     page.getByRole("heading", { level: 2, name: "Experience" }),
     page.getByRole("heading", { level: 2, name: "Stack" }),
+    page.getByRole("heading", { level: 2, name: "Privacy" }),
   ];
 }
 
@@ -337,6 +384,9 @@ for (const theme of ["dark", "light"] as const) {
       "rgb(255, 255, 255)",
     );
     await expect(page.getByRole("link", { name: "← Rob" })).toBeHidden();
+    await expect(
+      page.getByRole("link", { name: "Privacy", exact: true }),
+    ).toBeHidden();
     await expect(page.getByRole("link", { name: "Download PDF" })).toBeHidden();
 
     // Accent only on links: every other piece of text is a shade of grey.

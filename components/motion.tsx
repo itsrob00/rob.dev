@@ -38,8 +38,10 @@ const RISE_SECONDS = 0.5;
 const STAGGER_SECONDS = 0.08;
 
 /**
- * Content that rises into place: on arrival, or with `inView` the first time a fifth of it is on
- * screen; with `stagger` its direct children rise one after another instead of itself.
+ * Content that rises into place: on arrival, or with `inView` the first time its top passes the
+ * line 10% above the viewport's bottom edge; with `stagger` its direct children rise one after
+ * another instead of itself. A line, not a share of the content: a tall block's heading must not
+ * sit on screen invisible while too little of the block shows.
  *
  * On a page reached through a route transition nothing rises until the transition has finished; on
  * a first load or a browser back it rises at once.
@@ -67,7 +69,7 @@ export function FadeUp({
   const [scope, animate] = useAnimate<HTMLDivElement>();
   const [phase, setPhase] = useState<Phase>("pending");
   const arrival = useRef<Promise<void>>(null);
-  const seen = useInView(scope, { once: true, amount: 0.2 });
+  const seen = useInView(scope, { once: true, margin: "0px 0px -10% 0px" });
 
   // A layout effect, because routeArrival must be read while the route transition's DOM update is
   // still running (see there).

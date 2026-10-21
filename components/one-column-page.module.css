@@ -4,16 +4,24 @@
   padding: 64px 32px 160px;
 }
 
-.back {
-  display: inline-block;
-  margin-bottom: 48px;
+/* The links around the content: "← Rob" and the Privacy link. */
+.chrome {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 13px;
 }
 
-.back:hover {
+.chrome:hover {
   color: var(--accent);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 48px;
+}
+
+.footer {
+  margin-top: 96px;
 }
 
 @media (max-width: 560px) {
@@ -28,7 +36,8 @@
     padding: 0;
   }
 
-  .back {
+  .back,
+  .footer {
     display: none;
   }
 }
