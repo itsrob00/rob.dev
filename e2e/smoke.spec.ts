@@ -157,6 +157,33 @@ test("home sections show About, Experience and Stack from the records", async ({
   ]);
 });
 
+test("a missing page shows a 404 in the site's look, with a way home", async ({
+  page,
+}) => {
+  const response = await page.goto("/no-such-page");
+
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle("Page not found | Rob");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Page not found" }),
+  ).toBeVisible();
+  // Dark by default even though the visitor's OS asks for light (test.use above).
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(16, 15, 15)",
+  );
+  await expect(page.getByRole("link", { name: "home page" })).toHaveAttribute(
+    "href",
+    "/",
+  );
+
+  await page.getByRole("link", { name: "← Rob" }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
+  ).toBeVisible();
+});
+
 test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
   await page.goto("/");
