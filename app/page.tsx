@@ -31,9 +31,9 @@ type HomeSection = NavItem & {
 // The one list of home sections: <main> renders it in order and the nav lists each one.
 const sections = [
   { id: "about", title: "About", Body: About },
+  { id: "stack", title: "Stack", Body: StackList },
   { id: "work", title: "Selected Work", Body: SelectedWork },
   { id: "experience", title: "Experience", Body: ExperienceList },
-  { id: "stack", title: "Stack", Body: StackList },
 ] satisfies readonly HomeSection[];
 
 // Only plain data crosses to the client nav: Body is a function and can't.

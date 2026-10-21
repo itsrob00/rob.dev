@@ -39,3 +39,5 @@ Every pull request runs CI (format, lint, types, unit tests, build, smoke test) 
 ## License
 
 The code is MIT-licensed (see [LICENSE](LICENSE)). The content in `content/` and the Résumé PDF are © Rob, all rights reserved. The Satoshi font files in `app/fonts/` belong to Indian Type Foundry and are licensed under the [ITF Free Font License](https://www.fontshare.com/licenses/itf-ffl), not MIT. To use Satoshi yourself, get it from [Fontshare](https://www.fontshare.com/fonts/satoshi).
+
+The brand marks in the Stack and on Project pills come from [Simple Icons](https://simpleicons.org) (CC0), except Playwright's, which is copied from [Devicon](https://devicon.dev) (MIT, © 2015 konpa). Each mark is a trademark of its owner.

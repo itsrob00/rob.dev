@@ -93,9 +93,9 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
 
   expect(reached).toEqual([
     "ABOUT",
+    "STACK",
     "SELECTED WORK",
     "EXPERIENCE",
-    "STACK",
     "Email",
     "LinkedIn",
     "GitHub",
@@ -152,9 +152,46 @@ test("home sections show About, Experience and Stack from the records", async ({
     "Tailwind CSS",
     "Vite",
     "Vitest",
-    "Jest",
+    "Playwright",
     "Claude Code",
   ]);
+});
+
+test("Stack tiles and Project pills show brand marks before their names, hidden from assistive tech", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const stack = page.getByRole("region", { name: "Stack" });
+  await expect(stack.getByRole("list")).toHaveCSS(
+    "background-color",
+    "rgba(0, 0, 0, 0)",
+  );
+  const marks = stack.getByRole("listitem").locator("svg");
+  await expect(marks).toHaveCount(8);
+  for (const mark of await marks.all()) {
+    await expect(mark).toHaveAttribute("aria-hidden", "true");
+    expect(await mark.boundingBox()).toMatchObject({ width: 28, height: 28 });
+  }
+  await expect(
+    stack.getByRole("listitem").filter({ hasText: "React" }).locator("path"),
+  ).toHaveCSS("fill", "rgb(97, 218, 251)");
+
+  const cardPills = page
+    .getByRole("region", { name: "Selected Work" })
+    .getByRole("list", { name: "Stack" })
+    .getByRole("listitem");
+  await expect(cardPills).toHaveText(["Claude Code", "Node.js", "JavaScript"]);
+  for (const mark of await cardPills.locator("svg").all()) {
+    expect(await mark.boundingBox()).toMatchObject({ width: 13, height: 13 });
+  }
+
+  await page.goto("/projects/devflow");
+  await expect(
+    page
+      .getByRole("list", { name: "Stack" })
+      .getByRole("listitem")
+      .locator("svg"),
+  ).toHaveCount(3);
 });
 
 test("a missing page shows a 404 in the site's look, with a way home", async ({
@@ -191,9 +228,9 @@ test("the Privacy notice is a note at the foot of the home page, outside the sec
   const main = page.getByRole("main");
   await expect(main.getByRole("heading", { level: 2 })).toHaveText([
     "About",
+    "Stack",
     "Selected Work",
     "Experience",
-    "Stack",
   ]);
   const notice = page.locator("#privacy");
   await expect(notice).toHaveAccessibleName("Privacy");
@@ -246,9 +283,10 @@ function homeContent(page: Page) {
   return [
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
     page.getByRole("heading", { level: 2, name: "About" }),
+    page.getByRole("heading", { level: 2, name: "Stack" }),
+    page.getByRole("region", { name: "Stack" }).getByRole("listitem").last(),
     page.getByRole("heading", { level: 3, name: "devflow" }),
     page.getByRole("heading", { level: 2, name: "Experience" }),
-    page.getByRole("heading", { level: 2, name: "Stack" }),
     page.locator("#privacy"),
   ];
 }
@@ -298,9 +336,12 @@ test("a Selected Work card opens its Project page, which links back home", async
   const work = page.getByRole("region", { name: "Selected Work" });
   await expect(work.getByText("Open source · 2026")).toBeVisible();
   // The whole card is the link: a real click on the summary text lands on the link's overlay.
-  const summary = await work
-    .getByText(/^A Claude Code plugin that plans, builds, checks and proves/)
-    .boundingBox();
+  const summaryText = work.getByText(
+    /^A Claude Code plugin that plans, builds, checks and proves/,
+  );
+  await summaryText.scrollIntoViewIfNeeded();
+  await expect.poll(() => paintedOpacity(summaryText)).toBe(1);
+  const summary = await summaryText.boundingBox();
   if (!summary) throw new Error("summary not rendered");
   await page.mouse.click(
     summary.x + summary.width / 2,
@@ -379,6 +420,8 @@ test("the Résumé link opens the Résumé, built from the records, which links 
   await expect(main.getByText(/Claude Code/).first()).toBeVisible();
   await expect(main.getByText(/English/)).toBeVisible();
   await expect(main.getByText(/2014 – 2019/)).toBeVisible();
+  await expect(main.getByText(/Vitest · Playwright/)).toBeVisible();
+  await expect(page.locator("article svg")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
   await expect(page).toHaveURL(/\/$/);
