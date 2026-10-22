@@ -2,7 +2,7 @@ export type Profile = {
   name: string;
   role: string;
   location: string;
-  /** One line under the role. Doubles as the Résumé summary and the home meta description. */
+  /** One line under the role. Doubles as the home meta description. */
   blurb: string;
   /** The About section: two paragraphs of plain text. */
   about: readonly [string, string];

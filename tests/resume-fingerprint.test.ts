@@ -207,11 +207,13 @@ describe("the Résumé's inputs in this repo", () => {
     );
   });
 
-  test("include the Stack but leave out its brand marks and the home components", () => {
-    expect(inputs).toContain("content/stack.ts");
+  test("include the Résumé's own record but leave out home's Stack, its brand marks and the home components", () => {
+    expect(inputs).toContain("content/resume.ts");
     expect(inputs).not.toEqual(
       expect.arrayContaining([
-        expect.stringMatching(/technology|home-sections|stack-tags/),
+        expect.stringMatching(
+          /content\/stack|technology|home-sections|stack-tags/,
+        ),
       ]),
     );
   });

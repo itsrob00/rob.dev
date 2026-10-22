@@ -49,17 +49,33 @@ export function ExperienceList() {
   return (
     <ol className={styles.experience}>
       {experience.map((entry) => (
-        <li key={`${entry.start} ${entry.title}`} className={styles.entry}>
-          <p className={styles.when}>{formatDateRange(entry, "year")}</p>
-          <div>
+        <li key={entry.employer}>
+          <div className={styles.entry}>
+            <p className={styles.when}>{formatDateRange(entry, "year")}</p>
             <h3 className={styles.role}>
-              {entry.title}{" "}
-              <span className={styles.organization}>
-                · {entry.organization}
-              </span>
+              {entry.employer}{" "}
+              <span className={styles.organization}>· {entry.role}</span>
             </h3>
-            <p className={styles.blurb}>{entry.blurb}</p>
           </div>
+          <ol className={styles.experience}>
+            {entry.engagements.map((engagement) => (
+              <li key={engagement.name} className={styles.entry}>
+                <p className={styles.when}>
+                  {formatDateRange(engagement, "year")}
+                </p>
+                <div>
+                  <h4 className={styles.role}>
+                    {engagement.name}{" "}
+                    <span className={styles.organization}>
+                      · {engagement.role}
+                    </span>
+                  </h4>
+                  <p className={styles.client}>{engagement.client}</p>
+                  <p className={styles.blurb}>{engagement.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </li>
       ))}
     </ol>
