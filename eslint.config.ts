@@ -17,6 +17,13 @@ export default defineConfig([
               group: ["@/content/projects/*", "**/content/projects/*"],
               message: "Read Projects through @/lib/projects.",
             },
+            {
+              group: [
+                "@/content/repo-previews.json",
+                "**/content/repo-previews.json",
+              ],
+              message: "Read Repo previews through @/lib/repo-previews.",
+            },
           ],
         },
       ],

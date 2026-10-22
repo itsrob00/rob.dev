@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { OneColumnPage } from "@/components/one-column-page";
+import { RepoPreviewCard } from "@/components/repo-preview";
 import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
@@ -74,6 +75,7 @@ export default async function ProjectPage({
         <div className={styles.prose}>
           <Body />
         </div>
+        <RepoPreviewCard project={project} />
       </article>
     </OneColumnPage>
   );
