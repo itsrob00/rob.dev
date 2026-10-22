@@ -2,19 +2,24 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anchor } from "@/components/anchor";
 import { OneColumnPage } from "@/components/one-column-page";
-import { education } from "@/content/education";
 import { experience } from "@/content/experience";
-import { languages } from "@/content/languages";
 import { profile } from "@/content/profile";
-import { stack } from "@/content/stack";
-import { formatDateRange, formatYearSpan } from "@/lib/date-range";
+import { resume } from "@/content/resume";
+import { formatDateRange } from "@/lib/date-range";
 import { getProjects } from "@/lib/projects";
+import {
+  contactItems,
+  displayUrl,
+  formatEducationDates,
+  type ContactItem,
+} from "@/lib/resume";
 import { homeCard, pageMetadata } from "@/lib/site-metadata";
 import styles from "./page.module.css";
 
 // The Résumé renders its own markup rather than the home components: their accent pills and
 // kickers would break "accent only on links" in print. Every link here is absolute (or mailto),
-// because the printed PDF is read away from this site.
+// because the printed PDF is read away from this site. The PDF adds Rob's full name and phone
+// number at render time (scripts/resume-private.mts), so neither is in this page.
 
 // No sharing image of its own: it reuses home's.
 export const metadata: Metadata = pageMetadata({
@@ -41,41 +46,53 @@ export default function ResumePage() {
           <h1 className={styles.name}>{profile.name}</h1>
           <p className={styles.role}>{profile.role}</p>
           <ul className={styles.contact} aria-label="Contact">
-            <li>{profile.location}</li>
-            <li>
-              <Anchor href={`mailto:${profile.email}`}>{profile.email}</Anchor>
-            </li>
-            <li>
-              <Anchor href={profile.site}>{displayUrl(profile.site)}</Anchor>
-            </li>
-            <li>
-              <Anchor href={profile.linkedin} rel="me">
-                {displayUrl(profile.linkedin)}
-              </Anchor>
-            </li>
-            <li>
-              <Anchor href={profile.github} rel="me">
-                {displayUrl(profile.github)}
-              </Anchor>
-            </li>
+            {contactItems(profile, resume.remote).map((item) => (
+              <Contact
+                key={item.kind === "text" ? item.text : item.href}
+                {...item}
+              />
+            ))}
           </ul>
         </header>
 
-        <Section title="Summary">
-          <p className={styles.summary}>{profile.blurb}</p>
+        <Section title="Profile">
+          <p className={styles.summary}>{resume.profileParagraph}</p>
         </Section>
 
         <Section title="Experience">
           <ol className={styles.entries}>
             {experience.map((entry) => (
-              <li key={`${entry.start} ${entry.title}`}>
+              <li key={entry.employer}>
                 <Entry
-                  title={entry.title}
-                  detail={entry.organization}
+                  title={entry.employer}
+                  detail={entry.role}
                   when={formatDateRange(entry, "month")}
-                >
-                  <p className={styles.text}>{entry.blurb}</p>
-                </Entry>
+                />
+                <ol className={styles.engagements}>
+                  {entry.engagements.map((engagement) => (
+                    <li key={engagement.name} className={styles.engagement}>
+                      <Entry
+                        level={4}
+                        title={engagement.name}
+                        detail={engagement.role}
+                        when={formatDateRange(engagement, "month")}
+                      />
+                      <p className={styles.meta}>
+                        <span className={styles.client}>
+                          {engagement.client}
+                        </span>
+                        {" · "}
+                        {engagement.tech.join(", ")}
+                      </p>
+                      <p className={styles.text}>{engagement.description}</p>
+                      <ul className={styles.bullets}>
+                        {engagement.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
               </li>
             ))}
           </ol>
@@ -89,33 +106,39 @@ export default function ResumePage() {
                   title={project.title}
                   detail={project.role}
                   when={formatDateRange(project, "month")}
-                >
-                  <p className={styles.text}>{project.summary}</p>
-                  <p className={styles.meta}>
-                    {project.stack.join(" · ")}
-                    {[project.links.repo, project.links.live].map(
-                      (href) =>
-                        href && (
-                          <span key={href}>
-                            {" · "}
-                            <Anchor href={href}>{displayUrl(href)}</Anchor>
-                          </span>
-                        ),
-                    )}
-                  </p>
-                </Entry>
+                />
+                <p className={styles.text}>{project.summary}</p>
+                <p className={styles.meta}>
+                  {project.stack.join(" · ")}
+                  {[project.links.repo, project.links.live].map(
+                    (href) =>
+                      href && (
+                        <span key={href}>
+                          {" · "}
+                          <Anchor href={href}>{displayUrl(href)}</Anchor>
+                        </span>
+                      ),
+                  )}
+                </p>
               </li>
             ))}
           </ol>
         </Section>
 
-        <Section title="Stack">
-          <p className={styles.text}>{stack.join(" · ")}</p>
+        <Section title="Skills">
+          <ul className={styles.skills}>
+            {resume.skills.map((group) => (
+              <li key={group.label}>
+                <span className={styles.skillLabel}>{group.label}:</span>{" "}
+                {group.items.join(", ")}
+              </li>
+            ))}
+          </ul>
         </Section>
 
         <Section title="Languages">
           <p className={styles.text}>
-            {languages
+            {resume.languages
               .map(({ name, proficiency }) => `${name} (${proficiency})`)
               .join(" · ")}
           </p>
@@ -123,20 +146,49 @@ export default function ResumePage() {
 
         <Section title="Education">
           <ol className={styles.entries}>
-            {education.map((entry) => (
-              <li key={entry.institution}>
+            {resume.education.map((entry) => (
+              <li key={entry.title}>
                 <Entry
-                  title={`${entry.qualification}, ${entry.field}`}
-                  detail={`${entry.institution}, ${entry.place}`}
-                  when={formatYearSpan(entry.years)}
+                  title={entry.title}
+                  detail={entry.institution}
+                  when={formatEducationDates(entry.dates)}
                 />
+                {"detail" in entry && (
+                  <p className={styles.text}>{entry.detail}</p>
+                )}
               </li>
             ))}
           </ol>
         </Section>
+
+        <p className={styles.gdpr}>{resume.gdprLine}</p>
       </article>
     </OneColumnPage>
   );
+}
+
+function Contact(item: ContactItem) {
+  switch (item.kind) {
+    case "text":
+      return <li>{item.text}</li>;
+    case "link":
+      return (
+        <li>
+          <Anchor href={item.href} rel={item.rel}>
+            <span className={styles.screenOnly}>{item.screen}</span>
+            <span className={styles.printOnly}>{item.print}</span>
+          </Anchor>
+        </li>
+      );
+    case "print-link":
+      return (
+        <li className={styles.printOnly}>
+          <Anchor href={item.href} rel={item.rel}>
+            {item.print}
+          </Anchor>
+        </li>
+      );
+  }
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -152,30 +204,23 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function Entry({
+  level = 3,
   title,
   detail,
   when,
-  children,
 }: {
+  level?: 3 | 4;
   title: string;
   detail: string;
   when: string;
-  children?: ReactNode;
 }) {
+  const Heading = level === 3 ? "h3" : "h4";
   return (
-    <>
-      <div className={styles.entryHead}>
-        <h3 className={styles.entryTitle}>
-          {title} <span className={styles.detail}>· {detail}</span>
-        </h3>
-        <p className={styles.when}>{when}</p>
-      </div>
-      {children}
-    </>
+    <div className={styles.entryHead}>
+      <Heading className={styles.entryTitle}>
+        {title} <span className={styles.detail}>· {detail}</span>
+      </Heading>
+      <p className={styles.when}>{when}</p>
+    </div>
   );
-}
-
-/** "https://www.linkedin.com/in/robertoprats" → "linkedin.com/in/robertoprats". The href keeps the full URL. */
-function displayUrl(href: string): string {
-  return href.replace(/^https:\/\/(www\.)?/, "").replace(/\/$/, "");
 }

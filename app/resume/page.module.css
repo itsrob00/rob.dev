@@ -118,34 +118,93 @@
   line-height: 1.6;
 }
 
+.engagements {
+  display: grid;
+  gap: 20px;
+  margin-top: 16px;
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+  list-style: none;
+}
+
+.client {
+  color: var(--fg);
+}
+
+.bullets {
+  margin-top: 6px;
+  padding-left: 1.2em;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  list-style: disc;
+}
+
+.skills {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+  list-style: none;
+}
+
+.skillLabel {
+  color: var(--fg);
+  font-weight: 500;
+}
+
+.gdpr {
+  margin-top: 40px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.printOnly {
+  display: none;
+}
+
 @media print {
-  .download {
+  .download,
+  .screenOnly {
     display: none;
   }
 
+  .printOnly {
+    display: revert;
+  }
+
+  /* One block of sizes, so fitting one A4 page is a matter of tuning these. */
   .resume {
+    --p-body: 8.75pt;
+    --p-lead: 1.3;
+    --p-small: 8pt;
+    --p-gap-section: 6pt;
+    --p-gap-entry: 3pt;
+
     font-family: var(--font-sans);
-    font-size: 9.5pt;
-    line-height: 1.4;
+    font-size: var(--p-body);
+    line-height: var(--p-lead);
   }
 
   .header {
-    gap: 2pt;
-    padding-bottom: 8pt;
+    gap: 1pt;
+    padding-bottom: 6pt;
   }
 
   .name {
-    font-size: 20pt;
+    font-size: 18pt;
   }
 
   .role {
-    font-size: 11pt;
+    font-size: 10.5pt;
   }
 
   .contact {
-    gap: 0 10pt;
-    margin-top: 2pt;
-    font-size: 9pt;
+    gap: 0 8pt;
+    margin-top: 1pt;
+    font-size: var(--p-small);
   }
 
   .resume a {
@@ -156,49 +215,65 @@
   }
 
   .section {
-    margin-top: 10pt;
+    margin-top: var(--p-gap-section);
   }
 
   .heading {
-    margin-bottom: 4pt;
+    margin-bottom: 2pt;
     color: var(--fg);
     font-family: var(--font-sans);
-    font-size: 9pt;
+    font-size: var(--p-body);
     font-weight: 700;
     break-after: avoid;
   }
 
-  .summary {
-    font-size: 10pt;
-    line-height: 1.45;
+  .summary,
+  .text,
+  .bullets,
+  .skills {
+    margin-top: 0;
+    color: var(--fg);
+    font-size: var(--p-body);
+    line-height: var(--p-lead);
   }
 
-  .entries {
-    gap: 6pt;
+  .entries,
+  .engagements {
+    gap: var(--p-gap-entry);
   }
 
-  .entries > li {
+  .engagements {
+    margin-top: var(--p-gap-entry);
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .entries > li:not(:has(.engagements)),
+  .engagement {
     break-inside: avoid;
   }
 
   .entryTitle {
-    font-size: 10pt;
+    font-size: var(--p-body);
   }
 
   .when,
   .meta {
+    margin-top: 0;
     font-family: var(--font-sans);
-    font-size: 8.5pt;
+    font-size: var(--p-small);
   }
 
-  .text {
-    margin-top: 1pt;
-    color: var(--fg);
-    font-size: 9.5pt;
-    line-height: 1.4;
+  .bullets {
+    padding-left: 9pt;
   }
 
-  .meta {
-    margin-top: 1pt;
+  .skills {
+    gap: 0;
+  }
+
+  .gdpr {
+    margin-top: var(--p-gap-section);
+    font-size: 7pt;
   }
 }

@@ -5,11 +5,15 @@ Rob's personal site: who Rob is, what Rob has built and, later, what Rob writes.
 ## Language
 
 **Experience**:
-A role held at an employer or client: title, organization, dates and a short blurb. Lives in the Experience section and the Résumé.
+Rob's time at one employer: title, employer and dates, made up of one or more Engagements. Lives in the Experience section and the Résumé.
 _Avoid_: Job, position, work history
 
+**Engagement**:
+One piece of client work inside an Experience, with its own name, Rob's role on it, the client and dates.
+_Avoid_: Project, assignment, gig
+
 **Project**:
-A piece of public work, something a visitor can open (a repo or a live site), that gets its own page on the site. Client work that can't be opened is not a Project: it appears in an Experience entry and, later, in Posts.
+A piece of public work, something a visitor can open (a repo or a live site), that gets its own page on the site. Client work that can't be opened is not a Project: it appears as an Engagement and, later, in Posts.
 _Avoid_: Work item, portfolio piece, case study
 
 **Post**:
@@ -25,11 +29,15 @@ The column that holds who Rob is: name, role, a one-line blurb, section nav, con
 _Avoid_: Hero, left column, sidebar
 
 **Stack**:
-The technologies Rob works with. One list, shown as the Stack section on the home page and in the Résumé.
-_Avoid_: Skills, tech stack, toolbox
+The short, curated list of technologies Rob works with, each shown with its brand mark in the Stack section on the home page. Narrower than Skills: only technologies, never practices.
+_Avoid_: Tech stack, toolbox
+
+**Skills**:
+The Résumé's list of what Rob can do, grouped by area: technologies and practices alike (code review, test strategy, release sign-off). Broader than the Stack, and never shown on the home page.
+_Avoid_: Stack, competencies
 
 **Résumé**:
-The printable summary of Experience, Projects, Stack, languages and education, built from the same content as the site and offered as a web page and a PDF. There is one Résumé, in English.
+The printable summary of Experience, Projects, Skills, languages and education, built from the same content as the site and offered as a web page and a PDF. The PDF adds Rob's full name and phone number, which the page leaves out. There is one Résumé, in English.
 _Avoid_: CV
 
 **Résumé fingerprint**:

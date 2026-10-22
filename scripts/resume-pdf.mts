@@ -8,6 +8,12 @@ import {
   RENDER_RECIPE,
   saveResumePdf,
 } from "./resume-fingerprint.mts";
+import {
+  applyPrivateDetails,
+  assertUnpublished,
+  readPrivateDetails,
+  type PrivateDetails,
+} from "./resume-private.mts";
 
 // `npm run resume:pdf [-- --force]`: builds the site, prints /resume with Playwright's Chromium and
 // writes public/Rob-Resume.pdf plus its lock. Runs on Rob's machine only: Vercel's build image can't run
@@ -15,6 +21,15 @@ import {
 
 const root = process.cwd();
 const node = process.execPath;
+
+// First, so a run without them changes nothing. package.json loads .env.local (ADR 0001).
+let details: PrivateDetails;
+try {
+  details = readPrivateDetails(process.env);
+} catch (error) {
+  console.error((error as Error).message);
+  process.exit(1);
+}
 
 // Every fingerprint key but the print recipe is a file.
 const inputFiles = [...fingerprintResume(root).keys()].filter((key) =>
@@ -66,7 +81,8 @@ execFileSync(
   },
 );
 
-const pdf = await render(path.join(root, "out"));
+assertUnpublished(root, path.join(root, "out"), details);
+const pdf = await render(path.join(root, "out"), details);
 
 if (!sameFingerprint(inputs, fingerprintResume(root))) {
   throw new Error(
@@ -83,7 +99,10 @@ console.log(
  * there's no server, port or child process to clean up. A font or stylesheet that's missing fails the
  * render: a PDF in a fallback font must never be written.
  */
-async function render(outDir: string): Promise<Uint8Array> {
+async function render(
+  outDir: string,
+  details: PrivateDetails,
+): Promise<Uint8Array> {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage({
@@ -104,6 +123,8 @@ async function render(outDir: string): Promise<Uint8Array> {
       colorScheme: RENDER_RECIPE.colorScheme,
     });
     await page.goto("http://localhost/resume", { waitUntil: "networkidle" });
+    // Before the fonts settle, in case the full name needs a glyph the page didn't use.
+    await applyPrivateDetails(page, details);
     // Playwright's page.pdf() doesn't wait for web fonts itself.
     await page.evaluate(() => document.fonts.ready);
     if (missing.length > 0)

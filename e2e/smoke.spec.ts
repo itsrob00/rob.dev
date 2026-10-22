@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { applyPrivateDetails } from "../scripts/resume-private.mts";
 
 // Next 16.4's static export writes segment prefetches as __next.<seg>/__PAGE__.txt but requests
 // __next.<seg>.__PAGE__.txt. Navigation falls back to the full payload; ticket 11 checks production.
@@ -160,11 +161,22 @@ test("home sections show About, Experience and Stack from the records", async ({
       /^I've built front ends in React and TypeScript since 2023\./,
     ),
   ).toBeVisible();
-  await expect(
-    main.getByRole("heading", { level: 3, name: /^Front-end Engineer/ }),
-  ).toBeVisible();
-  await expect(main.getByText("2026 – now")).toBeVisible();
-  await expect(main.getByText("2023 – 2024")).toBeVisible();
+  const experience = page.getByRole("region", { name: "Experience" });
+  await expect(experience.getByRole("heading", { level: 3 })).toHaveText([
+    "Exolab S.r.l., Rome · Front-end Software Engineer",
+  ]);
+  await expect(experience.getByRole("heading", { level: 4 })).toHaveText([
+    "PCO · Front-end Tech Lead",
+    "VLT Admin Console Component Library · Front-end Consultant",
+    "Athena · Front-end Consultant",
+    "GestCert and EMCS · Front-end Developer",
+  ]);
+  await expect(experience.getByText("2023 – now")).toBeVisible();
+  await expect(experience.getByText("2026 – now")).toBeVisible();
+  await expect(experience.getByText("2023 – 2024")).toBeVisible();
+  await expect(experience.getByText("Sogei, for ADM")).toBeVisible();
+  // Compact: the tech lists and bullets are the Résumé's.
+  await expect(experience.getByText(/Redux Toolkit|Sole owner/)).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Stack" }).getByRole("listitem"),
   ).toHaveText([
@@ -467,45 +479,86 @@ test("the Résumé link opens the Résumé, built from the records, which links 
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 2 })).toHaveText([
-    "Summary",
+    "Profile",
     "Experience",
     "Projects",
-    "Stack",
+    "Skills",
     "Languages",
     "Education",
   ]);
 
+  // Short labels on screen; the PDF prints the full addresses, the site and the phone number.
   const contact = page.getByRole("list", { name: "Contact" });
-  await expect(contact.getByText("Gaeta, Italy")).toBeVisible();
   await expect(
-    contact.getByRole("link", { name: "roberto.prats00@gmail.com" }),
-  ).toHaveAttribute("href", "mailto:roberto.prats00@gmail.com");
-  await expect(
-    contact.getByRole("link", { name: "itsrob.dev" }),
-  ).toHaveAttribute("href", "https://itsrob.dev");
-  await expect(
-    contact.getByRole("link", { name: "linkedin.com/in/robertoprats" }),
-  ).toHaveAttribute("href", "https://www.linkedin.com/in/robertoprats");
-  await expect(
-    contact.getByRole("link", { name: "github.com/itsrob00" }),
-  ).toHaveAttribute("href", "https://github.com/itsrob00");
+    contact.getByRole("listitem").filter({ visible: true }),
+  ).toHaveText(
+    ["Gaeta, Italy", "Remote (CET)", "Email", "LinkedIn", "GitHub"],
+    {
+      useInnerText: true,
+    },
+  );
+  await expect(contact.getByRole("link", { name: "Email" })).toHaveAttribute(
+    "href",
+    "mailto:roberto.prats00@gmail.com",
+  );
+  await expect(contact.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    "https://www.linkedin.com/in/robertoprats",
+  );
+  await expect(contact.getByRole("link", { name: "GitHub" })).toHaveAttribute(
+    "href",
+    "https://github.com/itsrob00",
+  );
+  await expect(contact.locator('a[href="https://itsrob.dev"]')).toBeHidden();
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
 
   const main = page.getByRole("main");
   await expect(
-    main.getByText(/^I build front ends for large platforms/),
+    main.getByText(
+      /^Front-end developer working in React and TypeScript since 2023/,
+    ),
   ).toBeVisible();
+  const experience = page.getByRole("region", { name: "Experience" });
+  await expect(experience.getByRole("heading", { level: 3 })).toHaveText([
+    "Exolab S.r.l., Rome · Front-end Software Engineer",
+  ]);
+  await expect(experience.getByText("Jan 2023 – now")).toBeVisible();
+  await expect(experience.getByRole("heading", { level: 4 })).toHaveText([
+    "PCO · Front-end Tech Lead",
+    "VLT Admin Console Component Library · Front-end Consultant",
+    "Athena · Front-end Consultant",
+    "GestCert and EMCS · Front-end Developer",
+  ]);
+  await expect(experience.getByText("Oct – Dec 2025")).toBeVisible();
+  await expect(experience.getByText("Apr 2023 – Dec 2024")).toBeVisible();
+  await expect(experience.getByText("Sogei, for ADM")).toBeVisible();
   await expect(
-    main.getByText("Exolab Srl, client Sisal via Reply", { exact: false }),
+    experience.getByText(/^Sole owner of front-end QA/),
   ).toBeVisible();
-  await expect(main.getByText("Jan – Dec 2025")).toBeVisible();
   await expect(
     main.getByRole("heading", { level: 3, name: /^devflow/ }),
   ).toBeVisible();
-  await expect(main.getByText(/Claude Code/).first()).toBeVisible();
-  await expect(main.getByText(/English/)).toBeVisible();
-  await expect(main.getByText(/2014 – 2019/)).toBeVisible();
-  await expect(main.getByText(/Vitest · Playwright/)).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Skills" }).getByRole("listitem"),
+  ).toHaveText([
+    /^Front-end: React, TypeScript/,
+    /^Leadership: /,
+    /^Quality: .*Jest/,
+    /^AI-assisted development: /,
+    /^Also used: /,
+  ]);
+  await expect(
+    main.getByText("Italian (Native) · English (Native)", { exact: true }),
+  ).toBeVisible();
+  const education = page.getByRole("region", { name: "Education" });
+  await expect(
+    education.getByText("In progress", { exact: true }),
+  ).toBeVisible();
+  await expect(education.getByText("Sep 2022 – Apr 2023")).toBeVisible();
+  await expect(education.getByText("2019", { exact: true })).toBeVisible();
+  await expect(
+    main.getByText(/^I authorise the processing of my personal data/),
+  ).toBeVisible();
   await expect(page.locator("article svg")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
@@ -513,6 +566,9 @@ test("the Résumé link opens the Résumé, built from the records, which links 
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
+
+/** As long as the real values, so the print test fills the header the PDF has. */
+const STAND_IN = { fullName: "Firstname Lastname", phone: "+00 000 000 0000" };
 
 for (const theme of ["dark", "light"] as const) {
   test(`the Résumé prints black on white on one A4 page from the ${theme} theme`, async ({
@@ -526,6 +582,32 @@ for (const theme of ["dark", "light"] as const) {
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 
     await page.emulateMedia({ media: "print" });
+    // The PDF's own header: the full name, the phone and every address in full. Twice, as it must be safe to.
+    for (let run = 0; run < 2; run++) {
+      await applyPrivateDetails(page, STAND_IN);
+    }
+    await expect(page).toHaveTitle(`Résumé | ${STAND_IN.fullName}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      STAND_IN.fullName,
+    );
+    await expect(
+      page
+        .getByRole("list", { name: "Contact" })
+        .getByRole("listitem")
+        .filter({ visible: true }),
+    ).toHaveText(
+      [
+        "Gaeta, Italy",
+        "Remote (CET)",
+        STAND_IN.phone,
+        "roberto.prats00@gmail.com",
+        "itsrob.dev",
+        "linkedin.com/in/robertoprats",
+        "github.com/itsrob00",
+      ],
+      { useInnerText: true },
+    );
+
     await expect(page.locator("body")).toHaveCSS(
       "background-color",
       "rgb(255, 255, 255)",
@@ -649,7 +731,7 @@ test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab,
   }
 
   await expect(
-    page.getByRole("link", { name: "itsrob.dev", exact: true }),
+    page.locator('article a[href="https://itsrob.dev"]'),
   ).not.toHaveAttribute("target");
 
   await page.goto("/projects/devflow");
