@@ -572,3 +572,66 @@ test("the Résumé PDF downloads as Rob-Resume.pdf, and nothing else links to it
   expectOneA4Page(await readFile(await download.path()));
   expect(errors).toEqual([]);
 });
+
+test("links to other sites open in a new tab and keep the referrer; every other link stays in the tab", async ({
+  page,
+  request,
+}) => {
+  const sitemap = await (await request.get("/sitemap.xml")).text();
+  const routes = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(
+    ([, loc]) => new URL(loc).pathname,
+  );
+  let leaving = 0;
+
+  for (const route of [...routes, "/no-such-page"]) {
+    await page.goto(route);
+    const links = await page.locator("a").evaluateAll((anchors) =>
+      anchors.map((a) => ({
+        href: a.getAttribute("href") ?? "",
+        target: a.getAttribute("target"),
+        rel: (a.getAttribute("rel") ?? "").split(/\s+/),
+      })),
+    );
+
+    for (const { href, target, rel } of links) {
+      const url = new URL(href, "https://itsrob.dev");
+      const where = `${route}: ${href}`;
+      if (/^https?:$/.test(url.protocol) && url.hostname !== "itsrob.dev") {
+        leaving++;
+        expect(target, where).toBe("_blank");
+        expect(rel, where).toContain("noopener");
+        expect(rel, where).not.toContain("noreferrer");
+      } else {
+        expect(target, where).toBeNull();
+      }
+    }
+  }
+
+  expect(leaving).toBeGreaterThan(0);
+});
+
+test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab, and the Résumé's own-site link doesn't", async ({
+  page,
+}) => {
+  for (const route of ["/", "/resume"]) {
+    await page.goto(route);
+    for (const href of [
+      "https://www.linkedin.com/in/robertoprats",
+      "https://github.com/itsrob00",
+    ]) {
+      await expect(page.locator(`a[href="${href}"]`), route).toHaveAttribute(
+        "rel",
+        "me noopener",
+      );
+    }
+  }
+
+  await expect(
+    page.getByRole("link", { name: "itsrob.dev", exact: true }),
+  ).not.toHaveAttribute("target");
+
+  await page.goto("/projects/devflow");
+  await expect(
+    page.getByRole("link", { name: "Matt Pocock's skills" }),
+  ).toHaveAttribute("target", "_blank");
+});

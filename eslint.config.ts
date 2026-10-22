@@ -29,6 +29,25 @@ export default defineConfig([
       ],
     },
   },
+  {
+    ignores: ["components/anchor.tsx", "components/section-nav.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "JSXOpeningElement[name.name='a']",
+          message:
+            "Write a link as <Anchor> from @/components/anchor (it opens other sites in a new tab), or <NavLink> for a page of this site.",
+        },
+        {
+          selector:
+            "JSXOpeningElement[name.name=/^(Link|NavLink)$/] > JSXAttribute[name.name='target']",
+          message:
+            "next/link skips client navigation when it has a target. Link to another site with <Anchor>.",
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".scratch/**",
     "content-source/**",

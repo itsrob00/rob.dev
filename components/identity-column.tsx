@@ -1,4 +1,5 @@
 import { profile } from "@/content/profile";
+import { Anchor } from "./anchor";
 import { GaetaClock } from "./gaeta-clock";
 import { FadeUp } from "./motion";
 import { NavLink } from "./route-transition";
@@ -18,17 +19,17 @@ export function IdentityColumn({ nav }: { nav: readonly NavItem[] }) {
       <div className={styles.foot}>
         <ul className={styles.links}>
           <li>
-            <a href={`mailto:${profile.email}`}>Email</a>
+            <Anchor href={`mailto:${profile.email}`}>Email</Anchor>
           </li>
           <li>
-            <a href={profile.linkedin} rel="me">
+            <Anchor href={profile.linkedin} rel="me">
               LinkedIn
-            </a>
+            </Anchor>
           </li>
           <li>
-            <a href={profile.github} rel="me">
+            <Anchor href={profile.github} rel="me">
               GitHub
-            </a>
+            </Anchor>
           </li>
           <li>
             <NavLink href="/resume" direction="forward">
