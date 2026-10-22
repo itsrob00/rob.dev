@@ -403,7 +403,7 @@ test("a Selected Work card opens its Project page, which links back home", async
   expect(errors).toEqual([]);
 });
 
-test("a Project page ends with its Repo preview: a same-tab link to the repo, with GitHub's image served by this site", async ({
+test("a Project page ends with its Repo preview: a new-tab link to the repo, with GitHub's image served by this site", async ({
   page,
 }) => {
   const errors = trackErrors(page);
@@ -417,7 +417,8 @@ test("a Project page ends with its Repo preview: a same-tab link to the repo, wi
     "href",
     "https://github.com/itsrob00/devflow",
   );
-  await expect(card).not.toHaveAttribute("target");
+  await expect(card).toHaveAttribute("target", "_blank");
+  await expect(card).toHaveAttribute("rel", "noopener");
   await expect(page.locator("article > *").last()).toHaveAttribute(
     "aria-label",
     "itsrob00/devflow on GitHub",
