@@ -1,5 +1,6 @@
 import type { Project } from "@/lib/projects";
 import { getRepoPreview } from "@/lib/repo-previews";
+import { Anchor } from "./anchor";
 import styles from "./repo-preview.module.css";
 
 export function RepoPreviewCard({
@@ -10,7 +11,7 @@ export function RepoPreviewCard({
   const preview = getRepoPreview(project);
   if (!preview) return null;
   return (
-    <a
+    <Anchor
       className={styles.card}
       href={preview.href}
       aria-label={`${preview.name} on GitHub`}
@@ -27,6 +28,6 @@ export function RepoPreviewCard({
         <span className={styles.name}>{preview.name}</span>
         <span className={styles.host}>github.com</span>
       </span>
-    </a>
+    </Anchor>
   );
 }
