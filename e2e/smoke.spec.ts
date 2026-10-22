@@ -127,6 +127,28 @@ test("section nav scrolls to a section and marks it as the current one", async (
   await expect(nav.locator("[aria-current]")).toHaveCount(1);
 });
 
+test("section nav marks a section once wheel scrolling brings its heading into the top half of the window", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const nav = page.getByRole("navigation", { name: "Sections" });
+  const { width, height } = page.viewportSize()!;
+
+  // A third of the way down: in the top half, but short of the line a nav click scrolls it to.
+  const distance = await page
+    .locator("#work")
+    .evaluate(
+      (section, target) => section.getBoundingClientRect().top - target,
+      height / 3,
+    );
+  await page.mouse.move(width * 0.75, height / 2);
+  await page.mouse.wheel(0, distance);
+
+  await expect(
+    nav.getByRole("link", { name: "Selected Work" }),
+  ).toHaveAttribute("aria-current", "location");
+});
+
 test("home sections show About, Experience and Stack from the records", async ({
   page,
 }) => {
