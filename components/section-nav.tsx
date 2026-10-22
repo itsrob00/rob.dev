@@ -25,10 +25,10 @@ function subscribe(onChange: () => void) {
 function measureActive(items: readonly NavItem[]) {
   const sections = items.map(({ id }) => {
     const element = document.getElementById(id);
-    if (!element) return { id, offset: Infinity };
-    // A nav click scrolls a section to its scroll-margin-top, so that's the line it's measured against.
+    if (!element) return { id, top: Infinity, line: 0 };
+    // A nav click scrolls a section to its scroll-margin-top, which tells a clicked section apart.
     const line = parseFloat(getComputedStyle(element).scrollMarginTop) || 0;
-    return { id, offset: element.getBoundingClientRect().top - line };
+    return { id, top: element.getBoundingClientRect().top, line };
   });
   return pickActiveSection(sections, {
     scrollY: window.scrollY,
