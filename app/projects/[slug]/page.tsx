@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Anchor } from "@/components/anchor";
 import { OneColumnPage } from "@/components/one-column-page";
 import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
@@ -58,8 +59,8 @@ export default async function ProjectPage({
           </dl>
           <StackTags stack={project.stack} />
           <p className={styles.links}>
-            {repo && <a href={repo}>Repository ↗</a>}
-            {live && <a href={live}>Live site ↗</a>}
+            {repo && <Anchor href={repo}>Repository ↗</Anchor>}
+            {live && <Anchor href={live}>Live site ↗</Anchor>}
           </p>
           {project.cover && (
             // Static export has no image optimizer; covers are pre-sized under public/.

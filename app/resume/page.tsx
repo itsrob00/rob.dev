@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Anchor } from "@/components/anchor";
 import { OneColumnPage } from "@/components/one-column-page";
 import { education } from "@/content/education";
 import { experience } from "@/content/experience";
@@ -26,15 +27,15 @@ export const metadata: Metadata = pageMetadata({
 export default function ResumePage() {
   return (
     <OneColumnPage>
-      {/* Outside the article, so it never prints and the article's links stay absolute. A plain <a>:
+      {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
           the PDF is a static file in public/, not a route for next/link. */}
-      <a
+      <Anchor
         href="/Rob-Resume.pdf"
         download="Rob-Resume.pdf"
         className={styles.download}
       >
         Download PDF
-      </a>
+      </Anchor>
       <article className={styles.resume}>
         <header className={styles.header}>
           <h1 className={styles.name}>{profile.name}</h1>
@@ -42,20 +43,20 @@ export default function ResumePage() {
           <ul className={styles.contact} aria-label="Contact">
             <li>{profile.location}</li>
             <li>
-              <a href={`mailto:${profile.email}`}>{profile.email}</a>
+              <Anchor href={`mailto:${profile.email}`}>{profile.email}</Anchor>
             </li>
             <li>
-              <a href={profile.site}>{displayUrl(profile.site)}</a>
+              <Anchor href={profile.site}>{displayUrl(profile.site)}</Anchor>
             </li>
             <li>
-              <a href={profile.linkedin} rel="me">
+              <Anchor href={profile.linkedin} rel="me">
                 {displayUrl(profile.linkedin)}
-              </a>
+              </Anchor>
             </li>
             <li>
-              <a href={profile.github} rel="me">
+              <Anchor href={profile.github} rel="me">
                 {displayUrl(profile.github)}
-              </a>
+              </Anchor>
             </li>
           </ul>
         </header>
@@ -97,7 +98,7 @@ export default function ResumePage() {
                         href && (
                           <span key={href}>
                             {" · "}
-                            <a href={href}>{displayUrl(href)}</a>
+                            <Anchor href={href}>{displayUrl(href)}</Anchor>
                           </span>
                         ),
                     )}
