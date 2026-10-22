@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "resume:pdf": "node scripts/resume-pdf.mts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "repo-previews": "node scripts/repo-previews.mts"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",

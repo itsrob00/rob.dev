@@ -197,11 +197,11 @@ describe("the Résumé's inputs in this repo", () => {
     expect(inputs).toContain("lib/site-metadata.ts");
   });
 
-  test("leave out the sharing images, icons, JSON-LD, sitemap and robots", () => {
+  test("leave out the sharing images, icons, JSON-LD, sitemap, robots and Repo previews", () => {
     expect(inputs).not.toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /opengraph-image|icon\.tsx|share-images|theme-tokens|person-json-ld|sitemap|robots/,
+          /opengraph-image|icon\.tsx|share-images|theme-tokens|person-json-ld|sitemap|robots|repo-preview/,
         ),
       ]),
     );

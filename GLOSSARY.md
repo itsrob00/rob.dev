@@ -39,3 +39,7 @@ _Avoid_: Checksum, hash file
 **Privacy notice**:
 The short note at the foot of the home page that tells visitors what the site and its host collect about them and where to send GDPR requests.
 _Avoid_: Privacy policy, cookie policy, cookie banner
+
+**Repo preview**:
+The card at the end of a Project page that shows the Project's repository the way GitHub presents it when the link is shared: GitHub's preview image, the repo's name and github.com. It's a snapshot Rob refreshes by hand, so it doesn't change on its own.
+_Avoid_: Link preview, unfurl, embed

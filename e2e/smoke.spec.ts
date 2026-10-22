@@ -369,6 +369,69 @@ test("a Selected Work card opens its Project page, which links back home", async
   expect(errors).toEqual([]);
 });
 
+test("a Project page ends with its Repo preview: a same-tab link to the repo, with GitHub's image served by this site", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+
+  await page.goto("/projects/devflow");
+  const card = page.getByRole("link", {
+    name: "itsrob00/devflow on GitHub",
+    exact: true,
+  });
+  await expect(card).toHaveAttribute(
+    "href",
+    "https://github.com/itsrob00/devflow",
+  );
+  await expect(card).not.toHaveAttribute("target");
+  await expect(page.locator("article > *").last()).toHaveAttribute(
+    "aria-label",
+    "itsrob00/devflow on GitHub",
+  );
+  await expect(page.getByRole("link", { name: "Repository ↗" })).toHaveCount(1);
+  await expect(card.getByText("github.com", { exact: true })).toBeVisible();
+
+  const image = card.locator("img");
+  await expect(image).toHaveAttribute("alt", "");
+  await expect(image).toHaveAttribute("src", /^\/repo-previews\//);
+  await card.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() =>
+      image.evaluate(
+        (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+      ),
+    )
+    .toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(card).toBeHidden();
+
+  await page.waitForLoadState("networkidle");
+  expect(errors).toEqual([]);
+});
+
+for (const route of ["/", "/resume", "/projects/devflow"]) {
+  test(`${route} asks no other origin for anything`, async ({
+    page,
+    baseURL,
+  }) => {
+    const elsewhere: string[] = [];
+    page.on("request", (request) => {
+      const { origin, protocol } = new URL(request.url());
+      if (protocol.startsWith("http") && origin !== baseURL) {
+        elsewhere.push(request.url());
+      }
+    });
+
+    await page.goto(route);
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    );
+    await page.waitForLoadState("networkidle");
+    expect(elsewhere).toEqual([]);
+  });
+}
+
 test("the Résumé link opens the Résumé, built from the records, which links back home", async ({
   page,
 }) => {
