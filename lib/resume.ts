@@ -1,5 +1,7 @@
 import type { Profile, ProfileCopy } from "../content/profile";
 import { formatDateRange, type DateRange } from "./date-range";
+import { dictionary } from "./dictionaries";
+import type { LanguageCode } from "./language-versions";
 
 type Link = { href: string; rel?: "me"; print: string };
 
@@ -16,6 +18,7 @@ export function contactItems(
   profile: Pick<Profile, "email" | "site" | "linkedin" | "github"> &
     Pick<ProfileCopy, "location">,
   remote: string,
+  emailLabel: string,
 ): readonly ContactItem[] {
   return [
     { kind: "text", text: profile.location },
@@ -23,7 +26,7 @@ export function contactItems(
     {
       kind: "link",
       href: `mailto:${profile.email}`,
-      screen: "Email",
+      screen: emailLabel,
       print: profile.email,
     },
     { kind: "print-link", href: profile.site, print: displayUrl(profile.site) },
@@ -56,12 +59,15 @@ export type EducationDates =
   | { kind: "completed"; year: number };
 
 /** "In progress" | "Sep 2022 – Apr 2023" | "2019". A reversed month range throws, failing the build. */
-export function formatEducationDates(dates: EducationDates): string {
+export function formatEducationDates(
+  dates: EducationDates,
+  lang: LanguageCode,
+): string {
   switch (dates.kind) {
     case "in-progress":
-      return "In progress";
+      return dictionary(lang).dates.inProgress;
     case "months":
-      return formatDateRange(dates, "month");
+      return formatDateRange(dates, "month", lang);
     case "completed":
       return String(dates.year);
   }

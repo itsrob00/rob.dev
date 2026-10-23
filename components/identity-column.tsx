@@ -1,4 +1,5 @@
 import { profile, profileCopy } from "@/content/profile";
+import { dictionary } from "@/lib/dictionaries";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
 import { Anchor } from "./anchor";
 import { GaetaClock } from "./gaeta-clock";
@@ -15,6 +16,7 @@ export function IdentityColumn({
   lang: LanguageCode;
   nav: readonly NavItem[];
 }) {
+  const t = dictionary(lang);
   const { role, location, blurb } = profileCopy[lang];
   return (
     <FadeUp as="header" stagger className={styles.column}>
@@ -22,12 +24,12 @@ export function IdentityColumn({
       <p className={styles.role}>{role}</p>
       <p className={styles.location}>{location}</p>
       <p className={styles.blurb}>{blurb}</p>
-      <SectionNav items={nav} />
+      <SectionNav label={t.sectionNav} items={nav} />
 
       <div className={styles.foot}>
         <ul className={styles.links}>
           <li>
-            <Anchor href={`mailto:${profile.email}`}>Email</Anchor>
+            <Anchor href={`mailto:${profile.email}`}>{t.email}</Anchor>
           </li>
           <li>
             <Anchor href={profile.linkedin} rel="me">
@@ -41,13 +43,13 @@ export function IdentityColumn({
           </li>
           <li>
             <NavLink href={pathIn(lang, "/resume")} direction="forward">
-              Résumé
+              {t.resume}
             </NavLink>
           </li>
         </ul>
         <div className={styles.meta}>
-          <GaetaClock />
-          <ThemeToggle />
+          <GaetaClock place={t.clock} />
+          <ThemeToggle labels={t.themeSwitch} />
         </div>
       </div>
     </FadeUp>

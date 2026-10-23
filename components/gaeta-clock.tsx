@@ -14,8 +14,12 @@ const getTime = () => formatGaetaTime(new Date());
 // The page is prerendered at build time, so the server can't know the time. The client fills it in.
 const getServerTime = () => null;
 
-export function GaetaClock() {
+export function GaetaClock({ place }: { place: string }) {
   const time = useSyncExternalStore(subscribe, getTime, getServerTime);
 
-  return <p>{time ?? "--:--"} in Gaeta</p>;
+  return (
+    <p>
+      {time ?? "--:--"} {place}
+    </p>
+  );
 }

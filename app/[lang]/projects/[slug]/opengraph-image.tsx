@@ -24,7 +24,8 @@ export default async function Image({
   params: Promise<{ lang: string; slug: string }>;
 }) {
   const { lang, slug } = await params;
-  const project = getProject(languageVersion(lang).code, slug);
+  const { code } = languageVersion(lang);
+  const project = getProject(code, slug);
   if (!project) throw new Error("No such Project");
-  return renderShareCard(projectCard(project));
+  return renderShareCard(projectCard(project, code));
 }

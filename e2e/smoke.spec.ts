@@ -782,6 +782,20 @@ for (const theme of ["dark", "light"] as const) {
   });
 }
 
+test("the PDF's phone number finds the contact list in any Language version", async ({
+  page,
+}) => {
+  await page.goto("/en/resume");
+  const contact = page.getByRole("list", { name: "Contact" });
+  await contact.evaluate((list) => list.setAttribute("aria-label", "Contatti"));
+
+  await applyPrivateDetails(page, STAND_IN);
+
+  await expect(
+    page.getByRole("list", { name: "Contatti" }).getByRole("listitem"),
+  ).toContainText([STAND_IN.phone]);
+});
+
 test("the Résumé PDF downloads as Roberto-Prats-EN.pdf, and nothing else links to it", async ({
   page,
 }) => {

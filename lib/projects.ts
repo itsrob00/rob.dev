@@ -4,20 +4,20 @@ import matter from "gray-matter";
 import type { MDXContent } from "mdx/types";
 import { z } from "zod";
 import { isYearMonth, type DateRange, type YearMonth } from "./date-range";
+import { dictionary } from "./dictionaries";
 import { LANGUAGE_VERSIONS, type LanguageCode } from "./language-versions";
 
 // Projects: one MDX file each per Language version, in content/projects/<code>/ under a shared slug,
 // and the only way to read them. Every call re-reads and re-validates the folder (no cache, so
-// `next dev` is never stale and tests point process.cwd() at a fixture). gray-matter parses the frontmatter here; remark-frontmatter in
-// next.config.ts only keeps the --- block out of the rendered body.
+// `next dev` is never stale and tests point process.cwd() at a fixture). gray-matter parses the
+// frontmatter here; remark-frontmatter in next.config.ts only keeps the --- block out of the
+// rendered body.
 
 export type Project = DateRange & {
   /** Sets the URL. Unique across Projects. */
   slug: string;
   /** Derived from slug: the one place a Project URL is spelled. */
   href: `/projects/${string}`;
-  /** Derived: "Open source · 2026" (start year), the label on the card and the page header. */
-  kicker: string;
   title: string;
   /** One line: card text, page lead and meta description. */
   summary: string;
@@ -39,6 +39,15 @@ export function getProject(
   slug: string,
 ): Project | undefined {
   return getProjects(lang).find((project) => project.slug === slug);
+}
+
+/** "Open source · 2026" (start year), the label on the card, the page header and the share image. */
+export function projectKicker(
+  project: Pick<Project, "start">,
+  lang: LanguageCode,
+): string {
+  // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
+  return dictionary(lang).project.kicker(project.start.slice(0, 4));
 }
 
 // Relative to process.cwd(). loadProjectBody's import spells it again: a bundler import needs a literal.
@@ -168,8 +177,6 @@ function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
       project: {
         ...frontmatter,
         href: `/projects/${frontmatter.slug}`,
-        // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
-        kicker: `Open source · ${frontmatter.start.slice(0, 4)}`,
       },
     });
   }

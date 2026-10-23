@@ -67,7 +67,7 @@ describe("Résumé record", () => {
   for (const code of CODES) {
     test(`${code}: Education dates all format`, () => {
       for (const entry of resume[code].education) {
-        expect(() => formatEducationDates(entry.dates)).not.toThrow();
+        expect(() => formatEducationDates(entry.dates, code)).not.toThrow();
       }
     });
 

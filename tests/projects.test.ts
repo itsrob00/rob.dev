@@ -1,6 +1,6 @@
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getProject, getProjects } from "../lib/projects";
+import { getProject, getProjects, projectKicker } from "../lib/projects";
 
 // Each fixture is a miniature repo root holding content/projects/<language>/*.mdx, so the tests call
 // the same functions the pages do, pointed at the fixture through process.cwd().
@@ -34,13 +34,20 @@ describe("getProjects", () => {
   });
 });
 
+describe("projectKicker", () => {
+  test("labels a Project open source, with its start year", () => {
+    expect(projectKicker({ start: "2025-06" }, "en")).toBe(
+      "Open source · 2025",
+    );
+  });
+});
+
 describe("getProject", () => {
   test("finds a Project by its slug, with fields from its frontmatter", () => {
     useFixture("valid");
     expect(getProject("en", "middle")).toEqual({
       slug: "middle",
       href: "/projects/middle",
-      kicker: "Open source · 2025",
       title: "Middle",
       summary: "Started in between.",
       role: "Maintainer",

@@ -6,8 +6,14 @@ import { RepoPreviewCard } from "@/components/repo-preview";
 import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
+import { dictionary } from "@/lib/dictionaries";
 import { languageVersion } from "@/lib/language-versions";
-import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
+import {
+  getProject,
+  getProjects,
+  loadProjectBody,
+  projectKicker,
+} from "@/lib/projects";
 import { pageMetadata, projectCard } from "@/lib/site-metadata";
 import styles from "./page.module.css";
 
@@ -32,7 +38,7 @@ export async function generateMetadata({
         path: project.href,
         title: project.title,
         description: project.summary,
-        card: projectCard(project),
+        card: projectCard(project, version.code),
       })
     : {};
 }
@@ -46,30 +52,31 @@ export default async function ProjectPage({
   if (!project) notFound();
   const Body = await loadProjectBody(code, project);
   const { repo, live } = project.links;
+  const t = dictionary(code).project;
 
   return (
     <OneColumnPage lang={code}>
       <article>
         <header className={styles.header}>
-          <p className={styles.kicker}>{project.kicker}</p>
+          <p className={styles.kicker}>{projectKicker(project, code)}</p>
           <h1 className={styles.title}>
             <SharedTitle slug={project.slug}>{project.title}</SharedTitle>
           </h1>
           <p className={styles.summary}>{project.summary}</p>
           <dl className={styles.facts}>
             <div>
-              <dt>Role</dt>
+              <dt>{t.role}</dt>
               <dd>{project.role}</dd>
             </div>
             <div>
-              <dt>When</dt>
-              <dd>{formatDateRange(project, "month")}</dd>
+              <dt>{t.when}</dt>
+              <dd>{formatDateRange(project, "month", code)}</dd>
             </div>
           </dl>
-          <StackTags stack={project.stack} />
+          <StackTags lang={code} stack={project.stack} />
           <p className={styles.links}>
-            {repo && <Anchor href={repo}>Repository ↗</Anchor>}
-            {live && <Anchor href={live}>Live site ↗</Anchor>}
+            {repo && <Anchor href={repo}>{t.repository}</Anchor>}
+            {live && <Anchor href={live}>{t.live}</Anchor>}
           </p>
           {project.cover && (
             // Static export has no image optimizer; covers are pre-sized under public/.
@@ -84,7 +91,7 @@ export default async function ProjectPage({
         <div className={styles.prose}>
           <Body />
         </div>
-        <RepoPreviewCard project={project} />
+        <RepoPreviewCard lang={code} project={project} />
       </article>
     </OneColumnPage>
   );
