@@ -132,7 +132,7 @@ function rollEnd(button: Locator) {
 test("the theme switch shows one glyph, and after the roll only the new one", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const toLight = page.getByRole("button", { name: "Switch to light theme" });
   await expect(toLight).toBeVisible();
   expect(await visibleGlyphs(toLight)).toEqual([{ glyph: "☾", whole: true }]);
@@ -152,7 +152,7 @@ test("the theme switch fits a 375px screen and is hidden in print", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.goto("/");
+  await page.goto("/en");
   const toggle = page.getByRole("button", { name: "Switch to light theme" });
   await toggle.click();
   await rollEnd(page.getByRole("button", { name: "Switch to dark theme" }));
@@ -457,7 +457,7 @@ test.describe("under reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
   test("the theme switch swaps its glyph without a roll", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en");
     await page.getByRole("button", { name: "Switch to light theme" }).click();
     const toDark = page.getByRole("button", { name: "Switch to dark theme" });
     expect(await animations(toDark)).toBe(0);
