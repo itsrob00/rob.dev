@@ -14,7 +14,7 @@ export default defineConfig({
   // Smoke runs against the static export, so `npm run build` must run first.
   webServer: {
     command: `npm run preview -- -l ${port} -L`,
-    url: `http://localhost:${port}`,
+    url: `http://localhost:${port}/en`,
     reuseExistingServer: !process.env.CI,
   },
 });

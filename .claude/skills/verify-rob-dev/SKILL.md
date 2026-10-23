@@ -38,10 +38,10 @@ Read-only. `OK ...` means the pid this checkout started is alive, the URL serves
 ## Drive
 
 ```bash
-node .claude/skills/verify-rob-dev/verify.mjs shot [route] --name <file> [--section <id>] [--theme dark|light] [--width 1280] [--height 900] [--run <id>] [--motion] [--full]
+node .claude/skills/verify-rob-dev/verify.mjs shot [route] --name <file> [--lang en] [--section <id>] [--theme dark|light] [--width 1280] [--height 900] [--run <id>] [--motion] [--full]
 ```
 
-One call is one visitor: a fresh Chromium context at the given viewport, the theme set the way the site's toggle stores it (`localStorage.theme`; dark is the default), reduced motion on so scroll-in animations have settled (`--motion` turns it back off). Give the route without its leading slash (`resume`, `projects/devflow`) and omit it for home: Git Bash on Windows rewrites a bare `/...` argument into a Windows path, and the helper refuses one it sees. It opens the route, scrolls the `#<section>` element into view and captures that element (or the viewport, or with `--full` the whole page).
+One call is one visitor: a fresh Chromium context at the given viewport, the theme set the way the site's toggle stores it (`localStorage.theme`; dark is the default), reduced motion on so scroll-in animations have settled (`--motion` turns it back off). Give the route without its leading slash (`resume`, `projects/devflow`) and omit it for home: Git Bash on Windows rewrites a bare `/...` argument into a Windows path, and the helper refuses one it sees. Leave out the Language version too: the helper puts the route under `/<lang>` (`--lang`, default `en`), so `resume` opens `/en/resume`. It opens the route, scrolls the `#<section>` element into view and captures that element (or the viewport, or with `--full` the whole page).
 
 It fails loud (exit 1, after writing the evidence) when the page scrolls sideways, when the rendered `<html data-theme>` isn't the requested theme, or when the console logs an error. The known Next 16.4 static-export prefetch 404s (`__next.<seg>.__PAGE__.txt`) are ignored, and the Vercel Analytics and Speed Insights scripts (`/_vercel/**/script.js`, which only Vercel serves) are answered with an empty script, both as the e2e suite does.
 

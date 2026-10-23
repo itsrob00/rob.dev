@@ -6,6 +6,7 @@ import { RepoPreviewCard } from "@/components/repo-preview";
 import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
+import { languageVersion } from "@/lib/language-versions";
 import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
 import { pageMetadata, projectCard } from "@/lib/site-metadata";
 import styles from "./page.module.css";
@@ -19,10 +20,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-}: PageProps<"/projects/[slug]">): Promise<Metadata> {
-  const project = getProject((await params).slug);
+}: PageProps<"/[lang]/projects/[slug]">): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const project = getProject(slug);
   return project
     ? pageMetadata({
+        version: languageVersion(lang),
         path: project.href,
         title: project.title,
         description: project.summary,
@@ -33,14 +36,16 @@ export async function generateMetadata({
 
 export default async function ProjectPage({
   params,
-}: PageProps<"/projects/[slug]">) {
-  const project = getProject((await params).slug);
+}: PageProps<"/[lang]/projects/[slug]">) {
+  const { lang, slug } = await params;
+  const { code } = languageVersion(lang);
+  const project = getProject(slug);
   if (!project) notFound();
   const Body = await loadProjectBody(project);
   const { repo, live } = project.links;
 
   return (
-    <OneColumnPage>
+    <OneColumnPage lang={code}>
       <article>
         <header className={styles.header}>
           <p className={styles.kicker}>{project.kicker}</p>

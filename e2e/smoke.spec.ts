@@ -41,7 +41,7 @@ test.beforeEach(async ({ page }) => {
 test("home loads with no console errors", async ({ page }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
@@ -57,7 +57,7 @@ test("theme starts dark, switches to light and stays light", async ({
   const html = page.locator("html");
   const body = page.locator("body");
 
-  await page.goto("/");
+  await page.goto("/en");
   await expect(html).toHaveAttribute("data-theme", "dark");
   await expect(body).toHaveCSS("background-color", "rgb(16, 15, 15)");
 
@@ -80,7 +80,7 @@ test("theme starts dark, switches to light and stays light", async ({
 test("section nav, contact links, the Résumé link and theme toggle are reachable by keyboard, with visible focus", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
 
   const reached: string[] = [];
   for (let i = 0; i < 9; i++) {
@@ -108,7 +108,7 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
 test("section nav scrolls to a section and marks it as the current one", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Sections" });
   await expect(nav.getByRole("link", { name: "About" })).toHaveAttribute(
     "aria-current",
@@ -131,7 +131,7 @@ test("section nav scrolls to a section and marks it as the current one", async (
 test("section nav marks a section once wheel scrolling brings its heading into the top half of the window", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Sections" });
   const { width, height } = page.viewportSize()!;
 
@@ -153,7 +153,7 @@ test("section nav marks a section once wheel scrolling brings its heading into t
 test("home sections show About, Experience and Stack from the records", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const main = page.getByRole("main");
 
   await expect(
@@ -198,7 +198,7 @@ test("home sections show About, Experience and Stack from the records", async ({
 test("Stack tiles and Project pills show brand marks before their names, hidden from assistive tech", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const stack = page.getByRole("region", { name: "Stack" });
   await expect(stack.getByRole("list")).toHaveCSS(
     "background-color",
@@ -223,7 +223,7 @@ test("Stack tiles and Project pills show brand marks before their names, hidden 
     expect(await mark.boundingBox()).toMatchObject({ width: 13, height: 13 });
   }
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   await expect(
     page
       .getByRole("list", { name: "Stack" })
@@ -232,37 +232,60 @@ test("Stack tiles and Project pills show brand marks before their names, hidden 
   ).toHaveCount(3);
 });
 
-test("a missing page shows a 404 in the site's look, with a way home", async ({
+test("a missing page shows a 404 in the site's look, in English and Italian, with a way home", async ({
   page,
 }) => {
   const response = await page.goto("/no-such-page");
 
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle("Page not found | Rob");
+  const english = page.locator('section[lang="en"]');
+  const italian = page.locator('section[lang="it"]');
   await expect(
-    page.getByRole("heading", { level: 1, name: "Page not found" }),
+    english.getByRole("heading", { level: 1, name: "Page not found" }),
+  ).toBeVisible();
+  await expect(
+    italian.getByRole("heading", { name: "Pagina non trovata" }),
   ).toBeVisible();
   // Dark by default even though the visitor's OS asks for light (test.use above).
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
     "rgb(16, 15, 15)",
   );
-  await expect(page.getByRole("link", { name: "home page" })).toHaveAttribute(
-    "href",
-    "/",
-  );
+  for (const section of [english, italian]) {
+    await expect(
+      section.getByRole("link", { name: "home page" }),
+    ).toHaveAttribute("href", "/en");
+  }
 
-  await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await english.getByRole("link", { name: "home page" }).click();
+  await expect(page).toHaveURL(/\/en$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
 });
 
+test("the 404 keeps the visitor's stored theme, and covers every Language version not yet published", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+
+  for (const route of ["/en/no-such-page", "/it", "/it/resume"]) {
+    const response = await page.goto(route);
+    expect(response?.status(), route).toBe(404);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator("body")).toHaveCSS(
+      "background-color",
+      "rgb(246, 244, 240)",
+    );
+  }
+});
+
 test("the Privacy notice is a note at the foot of the home page, outside the section nav", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const main = page.getByRole("main");
   await expect(main.getByRole("heading", { level: 2 })).toHaveText([
     "About",
@@ -283,14 +306,14 @@ test("the Privacy notice is a note at the foot of the home page, outside the sec
   ).toHaveCount(0);
 });
 
-for (const route of ["/projects/devflow", "/resume"]) {
+for (const route of ["/en/projects/devflow", "/en/resume"]) {
   test(`${route} links to the Privacy notice at its foot`, async ({ page }) => {
     const errors = trackErrors(page);
     await page.goto(route);
 
     await page.getByRole("link", { name: "Privacy", exact: true }).click();
 
-    await expect(page).toHaveURL(/\/#privacy$/);
+    await expect(page).toHaveURL(/\/en#privacy$/);
     await expect(page.locator("#privacy")).toBeInViewport();
     await page.waitForLoadState("networkidle");
     expect(errors).toEqual([]);
@@ -299,7 +322,7 @@ for (const route of ["/projects/devflow", "/resume"]) {
 
 test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
-  await page.goto("/");
+  await page.goto("/en");
   await expect(page.getByRole("navigation", { name: "Sections" })).toBeHidden();
 });
 
@@ -332,7 +355,7 @@ function homeContent(page: Page) {
 test("every home section is visible once scrolled into view", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   for (const content of homeContent(page)) {
     await content.scrollIntoViewIfNeeded();
     await expect.poll(() => paintedOpacity(content)).toBe(1);
@@ -347,7 +370,7 @@ test.describe("under reduced motion", () => {
   }) => {
     // Scripts only: the stylesheet that would hide the content is a chunk too, and has to load.
     await page.route("**/*.js", (route) => route.abort());
-    await page.goto("/");
+    await page.goto("/en");
     for (const content of homeContent(page)) {
       expect(await paintedOpacity(content)).toBe(1);
     }
@@ -358,7 +381,7 @@ test.describe("with JavaScript off", () => {
   test.use({ javaScriptEnabled: false });
 
   test("home content is visible", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en");
     for (const content of homeContent(page)) {
       expect(await paintedOpacity(content)).toBe(1);
     }
@@ -370,7 +393,7 @@ test("a Selected Work card opens its Project page, which links back home", async
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   const work = page.getByRole("region", { name: "Selected Work" });
   await expect(work.getByText("Open source · 2026")).toBeVisible();
   // The whole card is the link: a real click on the summary text lands on the link's overlay.
@@ -386,7 +409,7 @@ test("a Selected Work card opens its Project page, which links back home", async
     summary.y + summary.height / 2,
   );
 
-  await expect(page).toHaveURL(/\/projects\/devflow$/);
+  await expect(page).toHaveURL(/\/en\/projects\/devflow$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "devflow" }),
   ).toBeVisible();
@@ -402,7 +425,7 @@ test("a Selected Work card opens its Project page, which links back home", async
   await expect(page.locator("article hr")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/en$/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -412,7 +435,7 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   const card = page.getByRole("link", {
     name: "itsrob00/devflow on GitHub",
     exact: true,
@@ -449,7 +472,7 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
   expect(errors).toEqual([]);
 });
 
-for (const route of ["/", "/resume", "/projects/devflow"]) {
+for (const route of ["/en", "/en/resume", "/en/projects/devflow"]) {
   test(`${route} asks no other origin for anything`, async ({
     page,
     baseURL,
@@ -476,10 +499,10 @@ test("the Résumé link opens the Résumé, built from the records, which links 
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   await page.getByRole("link", { name: "Résumé", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/resume$/);
+  await expect(page).toHaveURL(/\/en\/resume$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
@@ -567,7 +590,7 @@ test("the Résumé link opens the Résumé, built from the records, which links 
   await expect(page.locator("article svg")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/en$/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -579,11 +602,11 @@ for (const theme of ["dark", "light"] as const) {
   test(`the Résumé prints black on white on one A4 page from the ${theme} theme`, async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/en");
     if (theme === "light") {
       await page.getByRole("button", { name: "Switch to light theme" }).click();
     }
-    await page.goto("/resume");
+    await page.goto("/en/resume");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 
     await page.emulateMedia({ media: "print" });
@@ -665,12 +688,12 @@ test("the Résumé PDF downloads as Rob-Resume.pdf, and nothing else links to it
 }) => {
   const errors = trackErrors(page);
 
-  for (const route of ["/", "/projects/devflow"]) {
+  for (const route of ["/en", "/en/projects/devflow"]) {
     await page.goto(route);
     await expect(page.locator('a[href$=".pdf"]')).toHaveCount(0);
   }
 
-  await page.goto("/resume");
+  await page.goto("/en/resume");
   await expect(page.locator('a[href$=".pdf"]')).toHaveCount(1);
   const downloading = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download PDF" }).click();
@@ -722,7 +745,7 @@ test("links to other sites open in a new tab and keep the referrer; every other 
 test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab, and the Résumé's own-site link doesn't", async ({
   page,
 }) => {
-  for (const route of ["/", "/resume"]) {
+  for (const route of ["/en", "/en/resume"]) {
     await page.goto(route);
     for (const href of [
       "https://www.linkedin.com/in/robertoprats",
@@ -739,7 +762,7 @@ test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab,
     page.locator('article a[href="https://itsrob.dev"]'),
   ).not.toHaveAttribute("target");
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   await expect(
     page.getByRole("link", { name: "Matt Pocock's skills" }),
   ).toHaveAttribute("target", "_blank");

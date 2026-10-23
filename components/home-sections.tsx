@@ -2,6 +2,7 @@ import { experience } from "@/content/experience";
 import { profile } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
+import { pathIn, type LanguageCode } from "@/lib/language-versions";
 import { getProjects } from "@/lib/projects";
 import { FadeUp, LiftItem } from "./motion";
 import { NavLink, SharedTitle } from "./route-transition";
@@ -20,7 +21,7 @@ export function About() {
 }
 
 // The title's link stretches over the whole card: one tab stop, named by the title.
-export function SelectedWork() {
+export function SelectedWork({ lang }: { lang: LanguageCode }) {
   return (
     <ul className={styles.work}>
       {getProjects().map((project) => (
@@ -29,7 +30,7 @@ export function SelectedWork() {
           <h3 className={styles.cardTitle}>
             <SharedTitle slug={project.slug}>
               <NavLink
-                href={project.href}
+                href={pathIn(lang, project.href)}
                 direction="forward"
                 className={styles.cardLink}
               >

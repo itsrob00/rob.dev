@@ -4,14 +4,14 @@ Each Selected Work card on the home page opens that Project's own page: a write-
 
 ## Sub-features
 
-- `project-open` a Selected Work card opens `/projects/<slug>`.
+- `project-open` a Selected Work card opens `/en/projects/<slug>`.
 - `project-back` the page links back home.
 - `project-repo-preview` the page ends with a Repo preview linking to GitHub in a new tab.
 
 ## How to get to it (user POV)
 
 - Choose the `devflow` card in Selected Work on `/`.
-- Open `/projects/devflow` directly.
+- Open `/en/projects/devflow` directly.
 
 ## Driving it with verify.mjs
 

@@ -11,14 +11,14 @@ import {
 // Each test writes a miniature repo to a temp folder rather than committing one under tests/fixtures:
 // tsconfig and ESLint cover every **/*.tsx, and a fixture's @/ imports would resolve against this repo.
 const FILES: Record<string, string | Buffer> = {
-  "app/layout.tsx": `import { sans } from "./fonts";\nimport "./globals.css";\n`,
+  "app/[lang]/layout.tsx": `import { sans } from "../fonts";\nimport "../globals.css";\n`,
   "app/globals.css": "@page {\n  size: A4;\n}\n",
   "app/fonts/index.ts": `export const sans = localFont({ src: "./Sans.otf" });\n`,
   "app/fonts/Sans.otf": Buffer.from([
     0x4f, 0x54, 0x54, 0x4f, 0x00, 0x01, 0x0d, 0x0a,
   ]),
-  "app/resume/page.tsx": `import { profile } from "@/content/profile";\nimport styles from "./page.module.css";\n`,
-  "app/resume/page.module.css": ".resume {\n  color: black;\n}\n",
+  "app/[lang]/resume/page.tsx": `import { profile } from "@/content/profile";\nimport styles from "./page.module.css";\n`,
+  "app/[lang]/resume/page.module.css": ".resume {\n  color: black;\n}\n",
   "content/profile.ts": `export const profile = { name: "Rob" };\n`,
   "content/projects/one.mdx": "---\ntitle: One\n---\n\nThe body.\n",
   "lib/unused.ts": "export const unused = 1;\n",
@@ -55,12 +55,12 @@ describe("fingerprintResume", () => {
 
     expect(fingerprintResume(miniRepo().root)).toEqual(fingerprint);
     expect([...fingerprint.keys()]).toEqual([
+      "app/[lang]/layout.tsx",
+      "app/[lang]/resume/page.module.css",
+      "app/[lang]/resume/page.tsx",
       "app/fonts/Sans.otf",
       "app/fonts/index.ts",
       "app/globals.css",
-      "app/layout.tsx",
-      "app/resume/page.module.css",
-      "app/resume/page.tsx",
       "content/profile.ts",
       "content/projects/one.mdx",
       "recipe",
@@ -75,7 +75,7 @@ describe("fingerprintResume", () => {
     ],
     [
       "the page code",
-      "app/resume/page.tsx",
+      "app/[lang]/resume/page.tsx",
       `import { profile } from "@/content/profile";\n`,
     ],
     [
@@ -104,7 +104,7 @@ describe("fingerprintResume", () => {
       "export const certifications = [];\n",
     );
     repo.edit(
-      "app/resume/page.tsx",
+      "app/[lang]/resume/page.tsx",
       (page) => `${page}import "@/content/certifications";\n`,
     );
 
@@ -116,7 +116,7 @@ describe("fingerprintResume", () => {
   test.each([
     [
       "CRLF line endings",
-      "app/resume/page.module.css",
+      "app/[lang]/resume/page.module.css",
       (css: string) => css.replace(/\n/g, "\r\n"),
     ],
     [
@@ -192,6 +192,16 @@ describe("the Résumé's inputs in this repo", () => {
   const inputs = [
     ...fingerprintResume(path.join(import.meta.dirname, "..")).keys(),
   ];
+
+  test("follow the Résumé route under its Language version, with the language list", () => {
+    expect(inputs).toEqual(
+      expect.arrayContaining([
+        "app/[lang]/layout.tsx",
+        "app/[lang]/resume/page.tsx",
+        "lib/language-versions.ts",
+      ]),
+    );
+  });
 
   test("include the page metadata rules, which set the Résumé's title", () => {
     expect(inputs).toContain("lib/site-metadata.ts");

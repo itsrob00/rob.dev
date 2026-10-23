@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   output: "export",
   // create-next-app turns this on, and it breaks static export.
   cacheComponents: false,
+  experimental: {
+    globalNotFound: true,
+  },
 };
 
 // Project bodies are imported from content/projects/, never routed, so pageExtensions stays default.

@@ -1,3 +1,15 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 64px 32px 160px;
+}
+
+.section + .section {
+  margin-top: 64px;
+  padding-top: 48px;
+  border-top: 1px solid var(--line);
+}
+
 /* Sized like a Project page's heading and lead, so the 404 reads as one of the site's pages. */
 .title {
   margin-bottom: 20px;
@@ -23,6 +35,10 @@
 }
 
 @media (max-width: 560px) {
+  .page {
+    padding: 48px 20px 120px;
+  }
+
   .title {
     font-size: 36px;
   }

@@ -15,7 +15,7 @@ import {
   type PrivateDetails,
 } from "./resume-private.mts";
 
-// `npm run resume:pdf [-- --force]`: builds the site, prints /resume with Playwright's Chromium and
+// `npm run resume:pdf [-- --force]`: builds the site, prints /en/resume with Playwright's Chromium and
 // writes public/Rob-Resume.pdf plus its lock. Runs on Rob's machine only: Vercel's build image can't run
 // Chromium, and the prebuild check only reads the lock. Needs `npx playwright install chromium` once.
 
@@ -91,11 +91,11 @@ if (!sameFingerprint(inputs, fingerprintResume(root))) {
 }
 saveResumePdf(root, inputs, pdf);
 console.log(
-  "Wrote public/Rob-Resume.pdf and app/resume/resume-pdf.lock. Commit both.",
+  "Wrote public/Rob-Resume.pdf and app/[lang]/resume/resume-pdf.lock. Commit both.",
 );
 
 /**
- * Prints out/resume.html. Requests are answered from out/ (clean URLs, as serve and Vercel do), so
+ * Prints out/en/resume.html. Requests are answered from out/ (clean URLs, as serve and Vercel do), so
  * there's no server, port or child process to clean up. A font or stylesheet that's missing fails the
  * render: a PDF in a fallback font must never be written.
  */
@@ -122,7 +122,7 @@ async function render(
       media: RENDER_RECIPE.media,
       colorScheme: RENDER_RECIPE.colorScheme,
     });
-    await page.goto("http://localhost/resume", { waitUntil: "networkidle" });
+    await page.goto("http://localhost/en/resume", { waitUntil: "networkidle" });
     // Before the fonts settle, in case the full name needs a glyph the page didn't use.
     await applyPrivateDetails(page, details);
     // Playwright's page.pdf() doesn't wait for web fonts itself.

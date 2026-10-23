@@ -6,6 +6,7 @@ import { experience } from "@/content/experience";
 import { profile } from "@/content/profile";
 import { resume } from "@/content/resume";
 import { formatDateRange } from "@/lib/date-range";
+import { languageVersion } from "@/lib/language-versions";
 import { getProjects } from "@/lib/projects";
 import {
   contactItems,
@@ -22,16 +23,24 @@ import styles from "./page.module.css";
 // number at render time (scripts/resume-private.mts), so neither is in this page.
 
 // No sharing image of its own: it reuses home's.
-export const metadata: Metadata = pageMetadata({
-  path: "/resume",
-  title: "Résumé",
-  description: `Résumé of ${profile.name}, ${profile.role} based in ${profile.location}.`,
-  card: homeCard,
-});
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/resume">): Promise<Metadata> {
+  return pageMetadata({
+    version: languageVersion((await params).lang),
+    path: "/resume",
+    title: "Résumé",
+    description: `Résumé of ${profile.name}, ${profile.role} based in ${profile.location}.`,
+    card: homeCard,
+  });
+}
 
-export default function ResumePage() {
+export default async function ResumePage({
+  params,
+}: PageProps<"/[lang]/resume">) {
+  const { code } = languageVersion((await params).lang);
   return (
-    <OneColumnPage>
+    <OneColumnPage lang={code}>
       {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
           the PDF is a static file in public/, not a route for next/link. */}
       <Anchor

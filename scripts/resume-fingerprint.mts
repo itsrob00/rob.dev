@@ -90,7 +90,7 @@ export function saveResumePdf(
 
 /** Repo-relative. The lock sits beside the page it certifies, outside public/ so it isn't served. */
 const RESUME_PDF = "public/Rob-Resume.pdf";
-const RESUME_LOCK = "app/resume/resume-pdf.lock";
+const RESUME_LOCK = "app/[lang]/resume/resume-pdf.lock";
 
 const LOCK_HEADER = [
   "# Written by `npm run resume:pdf`. The build fails when a line stops matching: run it again.",
@@ -156,7 +156,7 @@ function compare(a: string, b: string): number {
 }
 
 /** The route whose PDF this is. Its entries are every layout and template above it, then its page. */
-const ROUTE = "app/resume";
+const ROUTE = "app/[lang]/resume";
 
 /**
  * Folders the Résumé's code reads through fs, which no import reveals: FOLDER in lib/projects.ts

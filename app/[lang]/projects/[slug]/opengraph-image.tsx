@@ -1,14 +1,18 @@
+import { publishedLanguageVersions } from "@/lib/language-versions";
 import { getProject, getProjects } from "@/lib/projects";
 import { projectCard } from "@/lib/site-metadata";
 import { renderShareCard } from "@/lib/share-images";
 
-// One PNG per Project at /projects/<slug>/opengraph-image. Static export needs this file's own
-// generateStaticParams: it isn't inherited from the page. Its og:image tags come from pageMetadata.
+// One PNG per Project at /<lang>/projects/<slug>/opengraph-image. Static export needs this file's own
+// generateStaticParams, with every segment: it isn't inherited from the page or the layout. Its
+// og:image tags come from pageMetadata.
 export const dynamic = "force-static";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return getProjects().map(({ slug }) => ({ slug }));
+  return publishedLanguageVersions().flatMap(({ code }) =>
+    getProjects().map(({ slug }) => ({ lang: code, slug })),
+  );
 }
 
 export default async function Image({
