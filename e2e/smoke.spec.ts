@@ -67,14 +67,105 @@ test("theme starts dark, switches to light and stays light", async ({
 
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  await expect(
-    page.getByRole("button", { name: "Switch to dark theme" }),
-  ).toBeVisible();
+  const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+  await expect(toDark).toBeVisible();
+  expect(await animations(toDark)).toBe(0);
+  expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
 
   // With React's code blocked, only the head script can apply the choice: proof it lands before paint.
-  await page.route("**/_next/static/chunks/**", (route) => route.abort());
+  await page.route("**/_next/static/chunks/**/*.js", (route) => route.abort());
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
+  expect(
+    await visibleGlyphs(page.getByRole("button", { name: /^Switch to/ })),
+  ).toEqual([{ glyph: "☀", whole: true }]);
+});
+
+/** Glyphs with any painted area: each text box cut by every clipping ancestor up to the button. */
+function visibleGlyphs(button: Locator) {
+  return button.evaluate((root) => {
+    const shown: { glyph: string; whole: boolean }[] = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode;
+      const glyph = text.textContent?.trim();
+      if (!glyph) continue;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      const own = range.getBoundingClientRect();
+      if (own.width === 0 || own.height === 0) continue;
+      let { top, bottom, left, right } = own;
+      for (let node = text.parentElement; node; node = node.parentElement) {
+        if (getComputedStyle(node).overflow !== "visible") {
+          const clip = node.getBoundingClientRect();
+          top = Math.max(top, clip.top);
+          bottom = Math.min(bottom, clip.bottom);
+          left = Math.max(left, clip.left);
+          right = Math.min(right, clip.right);
+        }
+        if (node === root) break;
+      }
+      if (bottom - top > 0 && right - left > 0) {
+        const whole =
+          bottom - top >= own.height - 0.5 && right - left >= own.width - 0.5;
+        shown.push({ glyph, whole });
+      }
+    }
+    return shown;
+  });
+}
+
+function animations(button: Locator) {
+  return button.evaluate(
+    (root) => root.getAnimations({ subtree: true }).length,
+  );
+}
+
+function rollEnd(button: Locator) {
+  return button.evaluate((root) =>
+    Promise.all(
+      root.getAnimations({ subtree: true }).map((roll) => roll.finished),
+    ).then(() => undefined),
+  );
+}
+
+test("the theme switch shows one glyph, and after the roll only the new one", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const toLight = page.getByRole("button", { name: "Switch to light theme" });
+  await expect(toLight).toBeVisible();
+  expect(await visibleGlyphs(toLight)).toEqual([{ glyph: "☾", whole: true }]);
+
+  await toLight.click();
+  const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+  expect(await animations(toDark)).toBeGreaterThan(0);
+  await rollEnd(toDark);
+  expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
+
+  await toDark.click();
+  await rollEnd(toLight);
+  expect(await visibleGlyphs(toLight)).toEqual([{ glyph: "☾", whole: true }]);
+});
+
+test("the theme switch fits a 375px screen and is hidden in print", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: "Switch to light theme" });
+  await toggle.click();
+  await rollEnd(page.getByRole("button", { name: "Switch to dark theme" }));
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(
+    page.getByRole("button", { name: "Switch to dark theme" }),
+  ).toBeHidden();
 });
 
 test("section nav, contact links, the Résumé link and theme toggle are reachable by keyboard, with visible focus", async ({
@@ -341,6 +432,14 @@ test("every home section is visible once scrolled into view", async ({
 
 test.describe("under reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
+
+  test("the theme switch swaps its glyph without a roll", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+    expect(await animations(toDark)).toBe(0);
+    expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
+  });
 
   test("home content is visible at first paint, before any script runs", async ({
     page,
