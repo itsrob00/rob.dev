@@ -27,7 +27,7 @@ vi.mock("@/lib/projects", async (importOriginal) => ({
 
 /**
  * Every interface string the English site shows: a string matches a whole text node or aria-label,
- * a pattern matches inside one. "Open source", "Stack", "Email" and "Privacy" are Italian too.
+ * a pattern matches inside one. "Open source", "Stack", "Email", "Privacy" and "Repository" are Italian too.
  */
 const ENGLISH: readonly (string | RegExp)[] = [
   "About",
@@ -37,7 +37,6 @@ const ENGLISH: readonly (string | RegExp)[] = [
   "Résumé",
   "Role",
   "When",
-  "Repository ↗",
   "Live site ↗",
   "Download PDF",
   "Contact",
