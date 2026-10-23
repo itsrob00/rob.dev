@@ -1,5 +1,5 @@
 import { defineConfig } from "lint-staged/config";
-import { checkResumePdf } from "./scripts/resume-fingerprint.mts";
+import { checkResumePdfs } from "./scripts/resume-fingerprint.mts";
 
 // .husky/pre-commit runs these one glob at a time, in this order (--concurrent false), with every
 // unstaged change hidden (--hide-unstaged), so the last task sees exactly what will be committed.
@@ -10,10 +10,10 @@ export default defineConfig({
   "*": {
     title: "Résumé PDF fingerprint",
     task: (files, { log }) => {
-      const check = checkResumePdf(process.cwd(), files);
+      const check = checkResumePdfs(process.cwd(), files);
       if (!check.stale) return;
       log(check.message);
-      throw new Error("The Résumé PDF is out of date.");
+      throw new Error("A Résumé PDF is out of date.");
     },
   },
 });

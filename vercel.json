@@ -42,6 +42,11 @@
       "permanent": true
     },
     {
+      "source": "/Rob-Resume.pdf",
+      "destination": "/Roberto-Prats-EN.pdf",
+      "permanent": true
+    },
+    {
       "source": "/",
       "destination": "/en",
       "permanent": false
