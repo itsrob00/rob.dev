@@ -2,7 +2,7 @@
 # sha256 of each Résumé input (text with LF endings; Project MDX: frontmatter only), then of the PDF.
 e9ee8379d953caf6f0ac26e1088bafdc777140ba1fa200be5a28fa216dce3503  app/[lang]/layout.tsx
 fb875fec15b53562553503dc57f2d00308767687594a7f6118f25bf9d250f3b6  app/[lang]/resume/page.module.css
-5525c9c6f56110615c83ed96a632a83ad0cfc01f3874ccf41ae66936620cef85  app/[lang]/resume/page.tsx
+af2ff8a6d24bae2bb80afa5a59a6c875fd52910d8ce6bead8695b8dd3d4d0357  app/[lang]/resume/page.tsx
 50e4f9b7c1864c50761d729d6001bfac708c80457fa6fc41559a8ab1bd2573ff  app/fonts/Satoshi-Bold.otf
 93330866d109f6b2e298748958ec6fa4010cacef586783f281a0b268cab7fc6e  app/fonts/Satoshi-Medium.otf
 711c6243cdc5431f9cc966e4de18bfb940365bad81acffd1e7948dbe3f254386  app/fonts/Satoshi-Regular.otf
@@ -24,5 +24,5 @@ f1ddd4ed2eeb10471c5fbe5dc560f6b02923908b8aada7887452434dc3f53909  lib/resume.ts
 151067e098ac029d21d1d1142803bcf6ab71033eec2865175ea3b01c2fc02542  lib/route-transitions.ts
 107db9065eeb4f29dcde994bd3921721187c9ab45d55047e4c0ab3b1f8915b95  lib/site-metadata.ts
 098a22bd39dab25aafc090661257d3767b588a34de0f337c2156be62d8b2fc10  lib/theme.ts
-2fc82f0dbfc0edaaa598e54137d0c3533ac58924a3d9547d4d9b820c21b8e4b8  public/Rob-Resume.pdf
+5343b58afda8acfc9a6c1463874c0e524d0a849bdcd2b3eff578d0a733df3097  public/Roberto-Prats-EN.pdf
 394a40c0bb6c6b5e83fb221e59172f07ef3f499bc5f30961f4be48909648b92d  recipe

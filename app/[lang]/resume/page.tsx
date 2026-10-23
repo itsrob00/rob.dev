@@ -38,16 +38,13 @@ export async function generateMetadata({
 export default async function ResumePage({
   params,
 }: PageProps<"/[lang]/resume">) {
-  const { code } = languageVersion((await params).lang);
+  const { code, pdfSuffix } = languageVersion((await params).lang);
+  const pdf = `Roberto-Prats-${pdfSuffix}.pdf`;
   return (
     <OneColumnPage lang={code}>
       {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
           the PDF is a static file in public/, not a route for next/link. */}
-      <Anchor
-        href="/Rob-Resume.pdf"
-        download="Rob-Resume.pdf"
-        className={styles.download}
-      >
+      <Anchor href={`/${pdf}`} download={pdf} className={styles.download}>
         Download PDF
       </Anchor>
       <article className={styles.resume}>

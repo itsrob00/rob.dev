@@ -63,6 +63,14 @@ describe("the bare domain's redirect", () => {
 });
 
 describe("the old English URLs", () => {
+  test("redirect the old Résumé PDF permanently to the English one", () => {
+    expect(redirects).toContainEqual({
+      source: "/Rob-Resume.pdf",
+      destination: "/Roberto-Prats-EN.pdf",
+      permanent: true,
+    });
+  });
+
   test.each([
     ["/resume", "/resume"],
     ["/opengraph-image", "/opengraph-image"],
