@@ -103,6 +103,11 @@ describe("pages rendered with the Italian dictionary show no English interface s
     expect(englishIn(strings(html))).toEqual([]);
   });
 
+  test("Résumé: its contact list is still marked for the PDF's phone number", async () => {
+    const html = renderToStaticMarkup(await ResumePage(params({})));
+    expect(html.match(/<ul [^>]*data-contact=""/g)).toHaveLength(1);
+  });
+
   test("Résumé metadata", async () => {
     const { title, description }: Metadata = await resumeMetadata(params({}));
     expect(englishIn([String(title), String(description)])).toEqual([]);

@@ -41,25 +41,26 @@ export async function generateMetadata({
 export default async function ResumePage({
   params,
 }: PageProps<"/[lang]/resume">) {
-  const { code } = languageVersion((await params).lang);
+  const { code, pdfSuffix } = languageVersion((await params).lang);
+  const pdf = `Roberto-Prats-${pdfSuffix}.pdf`;
   const t = dictionary(code);
   const { headings } = t.resumePage;
   return (
     <OneColumnPage lang={code}>
       {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
           the PDF is a static file in public/, not a route for next/link. */}
-      <Anchor
-        href="/Rob-Resume.pdf"
-        download="Rob-Resume.pdf"
-        className={styles.download}
-      >
+      <Anchor href={`/${pdf}`} download={pdf} className={styles.download}>
         {t.resumePage.download}
       </Anchor>
       <article className={styles.resume}>
         <header className={styles.header}>
           <h1 className={styles.name}>{profile.name}</h1>
           <p className={styles.role}>{profile.role}</p>
-          <ul className={styles.contact} aria-label={t.resumePage.contact}>
+          <ul
+            className={styles.contact}
+            aria-label={t.resumePage.contact}
+            data-contact=""
+          >
             {contactItems(profile, resume.remote, t.email).map((item) => (
               <Contact
                 key={item.kind === "text" ? item.text : item.href}
