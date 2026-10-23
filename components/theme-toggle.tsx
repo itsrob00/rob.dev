@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useSyncExternalStore } from "react";
+import { useLayoutEffect, useState, useSyncExternalStore } from "react";
 import {
   applyTheme,
   DEFAULT_THEME,
@@ -25,9 +25,14 @@ const getTheme = (): Theme =>
 
 const getServerTheme = (): Theme => DEFAULT_THEME;
 
+const GLYPH: Record<Theme, string> = { dark: "☾", light: "☀" };
+
+type Roll = { from: Theme; count: number };
+
 export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
   const next: Theme = theme === "dark" ? "light" : "dark";
+  const [roll, setRoll] = useState<Roll | null>(null);
 
   // In development, Strict Mode's remount clears the attribute the head script set. No-op in production.
   useLayoutEffect(() => {
@@ -39,15 +44,26 @@ export function ThemeToggle() {
       type="button"
       className={styles.toggle}
       aria-label={`Switch to ${next} theme`}
-      onClick={() => saveTheme(next)}
+      onClick={() => {
+        setRoll((last) => ({ from: theme, count: (last?.count ?? 0) + 1 }));
+        saveTheme(next);
+      }}
     >
-      {/* Which symbol is lit comes from CSS on <html data-theme>, so it's right before hydration too. */}
-      <span aria-hidden="true" className={styles.dark}>
-        ☾
-      </span>
-      <span aria-hidden="true">/</span>
-      <span aria-hidden="true" className={styles.light}>
-        ☀
+      <span className={styles.window}>
+        <span key={roll?.count} className={roll ? styles.rolling : undefined}>
+          {roll && (
+            <span aria-hidden="true" className={styles.outgoing}>
+              {GLYPH[roll.from]}
+            </span>
+          )}
+          {/* Which symbol shows comes from CSS on <html data-theme>, so it's right before hydration too. */}
+          <span aria-hidden="true" className={styles.dark}>
+            {GLYPH.dark}
+          </span>
+          <span aria-hidden="true" className={styles.light}>
+            {GLYPH.light}
+          </span>
+        </span>
       </span>
     </button>
   );
