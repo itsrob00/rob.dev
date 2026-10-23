@@ -29,7 +29,8 @@ const GLYPH: Record<Theme, string> = { dark: "☾", light: "☀" };
 
 type Roll = { from: Theme; count: number };
 
-export function ThemeToggle() {
+/** `labels`: the button's label, by the theme it switches to. */
+export function ThemeToggle({ labels }: { labels: Record<Theme, string> }) {
   const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
   const next: Theme = theme === "dark" ? "light" : "dark";
   const [roll, setRoll] = useState<Roll | null>(null);
@@ -43,7 +44,7 @@ export function ThemeToggle() {
     <button
       type="button"
       className={styles.toggle}
-      aria-label={`Switch to ${next} theme`}
+      aria-label={labels[next]}
       onClick={() => {
         setRoll((last) => ({ from: theme, count: (last?.count ?? 0) + 1 }));
         saveTheme(next);

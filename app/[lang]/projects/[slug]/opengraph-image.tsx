@@ -1,4 +1,7 @@
-import { publishedLanguageVersions } from "@/lib/language-versions";
+import {
+  languageVersion,
+  publishedLanguageVersions,
+} from "@/lib/language-versions";
 import { getProject, getProjects } from "@/lib/projects";
 import { projectCard } from "@/lib/site-metadata";
 import { renderShareCard } from "@/lib/share-images";
@@ -18,9 +21,10 @@ export function generateStaticParams() {
 export default async function Image({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ lang: string; slug: string }>;
 }) {
-  const project = getProject((await params).slug);
+  const { lang, slug } = await params;
+  const project = getProject(slug);
   if (!project) throw new Error("No such Project");
-  return renderShareCard(projectCard(project));
+  return renderShareCard(projectCard(project, languageVersion(lang).code));
 }

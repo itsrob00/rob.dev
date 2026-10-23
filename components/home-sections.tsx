@@ -3,7 +3,7 @@ import { profile } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
-import { getProjects } from "@/lib/projects";
+import { getProjects, projectKicker } from "@/lib/projects";
 import { FadeUp, LiftItem } from "./motion";
 import { NavLink, SharedTitle } from "./route-transition";
 import { StackTags } from "./stack-tags";
@@ -26,7 +26,7 @@ export function SelectedWork({ lang }: { lang: LanguageCode }) {
     <ul className={styles.work}>
       {getProjects().map((project) => (
         <LiftItem key={project.slug} className={styles.card}>
-          <p className={styles.kicker}>{project.kicker}</p>
+          <p className={styles.kicker}>{projectKicker(project, lang)}</p>
           <h3 className={styles.cardTitle}>
             <SharedTitle slug={project.slug}>
               <NavLink
@@ -39,21 +39,21 @@ export function SelectedWork({ lang }: { lang: LanguageCode }) {
             </SharedTitle>
           </h3>
           <p className={styles.summary}>{project.summary}</p>
-          <StackTags stack={project.stack} />
+          <StackTags lang={lang} stack={project.stack} />
         </LiftItem>
       ))}
     </ul>
   );
 }
 
-export function ExperienceList() {
+export function ExperienceList({ lang }: { lang: LanguageCode }) {
   return (
     <ol className={styles.experience}>
       {experience.map((entry) => (
         <li key={entry.employer}>
           <h3 className={styles.employer}>{entry.employer}</h3>
           <p className={styles.tenure}>
-            {entry.role} · {formatDateRange(entry, "year")}
+            {entry.role} · {formatDateRange(entry, "year", lang)}
           </p>
           <ol className={styles.engagements}>
             {entry.engagements.map((engagement) => (
@@ -63,7 +63,8 @@ export function ExperienceList() {
                 data-ongoing={"end" in engagement ? undefined : ""}
               >
                 <p className={styles.meta}>
-                  {formatDateRange(engagement, "year")} · {engagement.client}
+                  {formatDateRange(engagement, "year", lang)} ·{" "}
+                  {engagement.client}
                 </p>
                 <h4 className={styles.name}>
                   {engagement.name}{" "}

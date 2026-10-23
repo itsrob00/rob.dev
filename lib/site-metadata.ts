@@ -3,10 +3,11 @@ import { profile } from "../content/profile";
 import {
   alternatesFor,
   pathIn,
+  type LanguageCode,
   type LanguageVersion,
   type SitePath,
 } from "./language-versions";
-import type { Project } from "./projects";
+import { projectKicker, type Project } from "./projects";
 
 // What each page tells search engines and link previews. The root layout and the Résumé page import
 // this file, so it's a Résumé fingerprint input: keep it to page metadata and card copy. Drawing the
@@ -57,10 +58,10 @@ export const homeCard: ShareCard = {
 };
 
 /** A Project's title and summary, under its kicker. */
-export function projectCard(project: Project): ShareCard {
+export function projectCard(project: Project, lang: LanguageCode): ShareCard {
   return {
     path: project.href,
-    kicker: project.kicker,
+    kicker: projectKicker(project, lang),
     title: project.title,
     text: project.summary,
   };

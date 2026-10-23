@@ -29,7 +29,7 @@ describe("Experience records", () => {
 describe("Résumé record", () => {
   test("Education dates all format", () => {
     for (const entry of resume.education) {
-      expect(() => formatEducationDates(entry.dates)).not.toThrow();
+      expect(() => formatEducationDates(entry.dates, "en")).not.toThrow();
     }
   });
 

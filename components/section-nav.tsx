@@ -37,7 +37,13 @@ function measureActive(items: readonly NavItem[]) {
   });
 }
 
-export function SectionNav({ items }: { items: readonly NavItem[] }) {
+export function SectionNav({
+  label,
+  items,
+}: {
+  label: string;
+  items: readonly NavItem[];
+}) {
   // The prerender can't measure, so it marks the first section: right for a load at the top.
   const activeId = useSyncExternalStore(
     subscribe,
@@ -46,7 +52,7 @@ export function SectionNav({ items }: { items: readonly NavItem[] }) {
   );
 
   return (
-    <nav aria-label="Sections" className={styles.nav}>
+    <nav aria-label={label} className={styles.nav}>
       <ul>
         {items.map(({ id, title }) => (
           <li key={id}>

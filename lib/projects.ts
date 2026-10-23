@@ -4,6 +4,8 @@ import matter from "gray-matter";
 import type { MDXContent } from "mdx/types";
 import { z } from "zod";
 import { isYearMonth, type DateRange, type YearMonth } from "./date-range";
+import { dictionary } from "./dictionaries";
+import type { LanguageCode } from "./language-versions";
 
 // Projects: one MDX file each in content/projects/, and the only way to read them. Every call
 // re-reads and re-validates the folder (no cache, so `next dev` is never stale and tests point
@@ -15,8 +17,6 @@ export type Project = DateRange & {
   slug: string;
   /** Derived from slug: the one place a Project URL is spelled. */
   href: `/projects/${string}`;
-  /** Derived: "Open source · 2026" (start year), the label on the card and the page header. */
-  kicker: string;
   title: string;
   /** One line: card text, page lead and meta description. */
   summary: string;
@@ -35,6 +35,15 @@ export function getProjects(): Project[] {
 /** The Project with this slug, or undefined (the page turns that into a 404). */
 export function getProject(slug: string): Project | undefined {
   return getProjects().find((project) => project.slug === slug);
+}
+
+/** "Open source · 2026" (start year), the label on the card, the page header and the share image. */
+export function projectKicker(
+  project: Pick<Project, "start">,
+  lang: LanguageCode,
+): string {
+  // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
+  return dictionary(lang).project.kicker(project.start.slice(0, 4));
 }
 
 // Relative to process.cwd(). loadProjectBody's import spells it again: a bundler import needs a literal.
@@ -118,8 +127,6 @@ function readFolder(): Entry[] {
       project: {
         ...frontmatter,
         href: `/projects/${frontmatter.slug}`,
-        // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
-        kicker: `Open source · ${frontmatter.start.slice(0, 4)}`,
       },
     });
   }
