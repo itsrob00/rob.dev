@@ -50,29 +50,25 @@ export function ExperienceList() {
     <ol className={styles.experience}>
       {experience.map((entry) => (
         <li key={entry.employer}>
-          <div className={styles.entry}>
-            <p className={styles.when}>{formatDateRange(entry, "year")}</p>
-            <h3 className={styles.role}>
-              {entry.employer}{" "}
-              <span className={styles.organization}>· {entry.role}</span>
-            </h3>
-          </div>
-          <ol className={styles.experience}>
+          <h3 className={styles.employer}>{entry.employer}</h3>
+          <p className={styles.tenure}>
+            {entry.role} · {formatDateRange(entry, "year")}
+          </p>
+          <ol className={styles.engagements}>
             {entry.engagements.map((engagement) => (
-              <li key={engagement.name} className={styles.entry}>
-                <p className={styles.when}>
-                  {formatDateRange(engagement, "year")}
+              <li
+                key={engagement.name}
+                className={styles.engagement}
+                data-ongoing={"end" in engagement ? undefined : ""}
+              >
+                <p className={styles.meta}>
+                  {formatDateRange(engagement, "year")} · {engagement.client}
                 </p>
-                <div>
-                  <h4 className={styles.role}>
-                    {engagement.name}{" "}
-                    <span className={styles.organization}>
-                      · {engagement.role}
-                    </span>
-                  </h4>
-                  <p className={styles.client}>{engagement.client}</p>
-                  <p className={styles.blurb}>{engagement.description}</p>
-                </div>
+                <h4 className={styles.name}>
+                  {engagement.name}{" "}
+                  <span className={styles.role}>· {engagement.role}</span>
+                </h4>
+                <p className={styles.blurb}>{engagement.description}</p>
               </li>
             ))}
           </ol>
