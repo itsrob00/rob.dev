@@ -39,6 +39,7 @@ _Italian_: Stack
 **Skills**:
 The Résumé's list of what Rob can do, grouped by area: technologies and practices alike (code review, test strategy, release sign-off). Broader than the Stack, and never shown on the home page.
 _Avoid_: Stack, competencies
+_Italian_: Competenze (not Abilità)
 
 **Résumé**:
 The printable summary of Experience, Projects, Skills, languages and education, built from the same content as the site and offered as a web page and a PDF. The PDF adds Rob's full name and phone number, which the page leaves out. There is one Résumé per Language version, each with its own PDF.
