@@ -149,7 +149,7 @@ describe("getRepoPreview", () => {
 });
 
 test("every Project in the site's content has its Repo preview", () => {
-  for (const site of getProjects()) {
+  for (const site of getProjects("en")) {
     expect(() => getRepoPreview(site)).not.toThrow();
   }
 });

@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { profile } from "../content/profile";
+import { profile, profileCopy } from "../content/profile";
 import {
   alternatesFor,
   pathIn,
+  type LanguageCode,
   type LanguageVersion,
   type SitePath,
 } from "./language-versions";
@@ -40,21 +41,25 @@ export type ShareCard = {
  * The root layout's metadata: only the URL base and the titles. Each page sets its own description,
  * canonical and openGraph through pageMetadata. The 404 is outside the layout and spells its own.
  */
-export const rootMetadata: Metadata = {
-  metadataBase: new URL(profile.site),
-  title: {
-    // Home's title: a template doesn't reach a page in the layout's own segment.
-    default: `${profile.name} | ${profile.role}`,
-    template: `%s | ${profile.name}`,
-  },
-};
+export function rootMetadata(lang: LanguageCode): Metadata {
+  return {
+    metadataBase: new URL(profile.site),
+    title: {
+      // Home's title: a template doesn't reach a page in the layout's own segment.
+      default: `${profile.name} | ${profileCopy[lang].role}`,
+      template: `%s | ${profile.name}`,
+    },
+  };
+}
 
 /** Name and role. Home's image, which the Résumé reuses. */
-export const homeCard: ShareCard = {
-  path: "/",
-  title: profile.name,
-  text: profile.role,
-};
+export function homeCard(lang: LanguageCode): ShareCard {
+  return {
+    path: "/",
+    title: profile.name,
+    text: profileCopy[lang].role,
+  };
+}
 
 /** A Project's title and summary, under its kicker. */
 export function projectCard(project: Project): ShareCard {

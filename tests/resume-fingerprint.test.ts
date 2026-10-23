@@ -218,7 +218,7 @@ describe("the Résumé's inputs in this repo", () => {
   });
 
   test("include the Résumé's own record but leave out home's Stack, its brand marks and the home components", () => {
-    expect(inputs).toContain("content/resume.ts");
+    expect(inputs).toContain("content/resume/en.ts");
     expect(inputs).not.toEqual(
       expect.arrayContaining([
         expect.stringMatching(

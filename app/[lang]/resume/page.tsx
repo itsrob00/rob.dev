@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anchor } from "@/components/anchor";
 import { OneColumnPage } from "@/components/one-column-page";
-import { experience } from "@/content/experience";
-import { profile } from "@/content/profile";
-import { resume } from "@/content/resume";
+import { experience as experienceRecords } from "@/content/experience";
+import { profile, profileCopy } from "@/content/profile";
+import { resume as resumeRecords } from "@/content/resume";
 import { formatDateRange } from "@/lib/date-range";
 import { languageVersion } from "@/lib/language-versions";
 import { getProjects } from "@/lib/projects";
@@ -26,12 +26,14 @@ import styles from "./page.module.css";
 export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/resume">): Promise<Metadata> {
+  const version = languageVersion((await params).lang);
+  const { role, location } = profileCopy[version.code];
   return pageMetadata({
-    version: languageVersion((await params).lang),
+    version,
     path: "/resume",
     title: "Résumé",
-    description: `Résumé of ${profile.name}, ${profile.role} based in ${profile.location}.`,
-    card: homeCard,
+    description: `Résumé of ${profile.name}, ${role} based in ${location}.`,
+    card: homeCard(version.code),
   });
 }
 
@@ -39,6 +41,8 @@ export default async function ResumePage({
   params,
 }: PageProps<"/[lang]/resume">) {
   const { code } = languageVersion((await params).lang);
+  const experience = experienceRecords[code];
+  const resume = resumeRecords[code];
   return (
     <OneColumnPage lang={code}>
       {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
@@ -53,9 +57,12 @@ export default async function ResumePage({
       <article className={styles.resume}>
         <header className={styles.header}>
           <h1 className={styles.name}>{profile.name}</h1>
-          <p className={styles.role}>{profile.role}</p>
+          <p className={styles.role}>{profileCopy[code].role}</p>
           <ul className={styles.contact} aria-label="Contact">
-            {contactItems(profile, resume.remote).map((item) => (
+            {contactItems(
+              { ...profile, ...profileCopy[code] },
+              resume.remote,
+            ).map((item) => (
               <Contact
                 key={item.kind === "text" ? item.text : item.href}
                 {...item}
@@ -109,7 +116,7 @@ export default async function ResumePage({
 
         <Section title="Projects">
           <ol className={styles.entries}>
-            {getProjects().map((project) => (
+            {getProjects(code).map((project) => (
               <li key={project.slug}>
                 <Entry
                   title={project.title}

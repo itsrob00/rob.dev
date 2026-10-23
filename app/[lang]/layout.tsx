@@ -10,7 +10,11 @@ import { rootMetadata } from "@/lib/site-metadata";
 import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import "../globals.css";
 
-export const metadata: Metadata = rootMetadata;
+export async function generateMetadata({
+  params,
+}: LayoutProps<"/[lang]">): Promise<Metadata> {
+  return rootMetadata(languageVersion((await params).lang).code);
+}
 
 export const dynamicParams = false;
 

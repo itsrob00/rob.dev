@@ -1,4 +1,4 @@
-import type { Profile } from "../content/profile";
+import type { Profile, ProfileCopy } from "../content/profile";
 import { formatDateRange, type DateRange } from "./date-range";
 
 type Link = { href: string; rel?: "me"; print: string };
@@ -13,7 +13,8 @@ export type ContactItem =
   | (Link & { kind: "print-link" });
 
 export function contactItems(
-  profile: Pick<Profile, "location" | "email" | "site" | "linkedin" | "github">,
+  profile: Pick<Profile, "email" | "site" | "linkedin" | "github"> &
+    Pick<ProfileCopy, "location">,
   remote: string,
 ): readonly ContactItem[] {
   return [

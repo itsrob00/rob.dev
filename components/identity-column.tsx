@@ -1,4 +1,4 @@
-import { profile } from "@/content/profile";
+import { profile, profileCopy } from "@/content/profile";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
 import { Anchor } from "./anchor";
 import { GaetaClock } from "./gaeta-clock";
@@ -15,12 +15,13 @@ export function IdentityColumn({
   lang: LanguageCode;
   nav: readonly NavItem[];
 }) {
+  const { role, location, blurb } = profileCopy[lang];
   return (
     <FadeUp as="header" stagger className={styles.column}>
       <h1 className={styles.name}>{profile.name}</h1>
-      <p className={styles.role}>{profile.role}</p>
-      <p className={styles.location}>{profile.location}</p>
-      <p className={styles.blurb}>{profile.blurb}</p>
+      <p className={styles.role}>{role}</p>
+      <p className={styles.location}>{location}</p>
+      <p className={styles.blurb}>{blurb}</p>
       <SectionNav items={nav} />
 
       <div className={styles.foot}>

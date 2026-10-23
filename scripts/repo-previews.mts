@@ -131,7 +131,7 @@ if (import.meta.main) {
     typeof import("../lib/repo-previews.ts")
   >("../lib/repo-previews.ts");
   try {
-    const targets = repoTargets(getProjects());
+    const targets = repoTargets(getProjects("en"));
     const report = saveRepoPreviews(await snapshotRepos(targets, fetch));
     for (const file of report.written) console.log(`Wrote ${file}`);
     for (const file of report.removed) {

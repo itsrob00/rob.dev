@@ -2,8 +2,8 @@ import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { getProject, getProjects } from "../lib/projects";
 
-// Each fixture is a miniature repo root holding content/projects/*.mdx, so the tests call the
-// same functions the pages do, pointed at the fixture through process.cwd().
+// Each fixture is a miniature repo root holding content/projects/<language>/*.mdx, so the tests call
+// the same functions the pages do, pointed at the fixture through process.cwd().
 function useFixture(name: string) {
   vi.spyOn(process, "cwd").mockReturnValue(
     path.join(import.meta.dirname, "fixtures", "projects", name),
@@ -17,10 +17,19 @@ afterEach(() => {
 describe("getProjects", () => {
   test("lists Projects newest first by start", () => {
     useFixture("valid");
-    expect(getProjects().map((project) => project.slug)).toEqual([
+    expect(getProjects("en").map((project) => project.slug)).toEqual([
       "newest",
       "middle",
       "older",
+    ]);
+  });
+
+  test("reads the folder for the Language version asked for", () => {
+    useFixture("valid");
+    expect(getProjects("it").map((project) => project.title)).toEqual([
+      "Il più recente",
+      "Nel mezzo",
+      "Il più vecchio",
     ]);
   });
 });
@@ -28,7 +37,7 @@ describe("getProjects", () => {
 describe("getProject", () => {
   test("finds a Project by its slug, with fields from its frontmatter", () => {
     useFixture("valid");
-    expect(getProject("middle")).toEqual({
+    expect(getProject("en", "middle")).toEqual({
       slug: "middle",
       href: "/projects/middle",
       kicker: "Open source · 2025",
@@ -44,35 +53,57 @@ describe("getProject", () => {
     });
   });
 
+  test("finds the same slug in another Language version, with that file's copy", () => {
+    useFixture("valid");
+    expect(getProject("it", "middle")).toMatchObject({
+      slug: "middle",
+      href: "/projects/middle",
+      title: "Nel mezzo",
+      summary: "Iniziato nel mezzo.",
+    });
+  });
+
   test("returns undefined for a slug no Project has", () => {
     useFixture("valid");
-    expect(getProject("missing")).toBeUndefined();
+    expect(getProject("en", "missing")).toBeUndefined();
   });
 });
 
 describe("invalid Projects fail the build", () => {
   test("rejects a Project with a missing field, naming the file and the field", () => {
     useFixture("missing-field");
-    expect(() => getProjects()).toThrow(/no-title\.mdx.*title/);
+    expect(() => getProjects("en")).toThrow(/no-title\.mdx.*title/);
   });
 
   test("rejects a Project with neither a repo nor a live link", () => {
     useFixture("no-link");
-    expect(() => getProjects()).toThrow(
+    expect(() => getProjects("en")).toThrow(
       /no-link\.mdx: links: add a repo or a live link/,
     );
   });
 
   test("rejects two Projects with the same slug, naming both files", () => {
     useFixture("duplicate-slug");
-    expect(() => getProjects()).toThrow(/slug "same".*first\.mdx.*second\.mdx/);
+    expect(() => getProjects("en")).toThrow(
+      /slug "same".*first\.mdx.*second\.mdx/,
+    );
+  });
+
+  test("rejects a Project missing in a Language version, in every Language version", () => {
+    useFixture("missing-language");
+    expect(() => getProjects("en")).toThrow(
+      /it: no file for Project "english-only"/,
+    );
+    expect(() => getProjects("it")).toThrow(
+      /it: no file for Project "english-only"/,
+    );
   });
 
   test("reports every problem in the folder in one error", () => {
     useFixture("malformed");
     const error = (() => {
       try {
-        getProjects();
+        getProjects("en");
       } catch (thrown) {
         return String(thrown);
       }
@@ -85,7 +116,8 @@ describe("invalid Projects fail the build", () => {
   });
 });
 
-// Fails `npm test` (and CI, before the build) when a real Project file is invalid.
+// Fails `npm test` (and CI, before the build) when a real Project file is invalid or missing a
+// Language version.
 test("accepts every Project in the site's content/projects", () => {
-  expect(getProjects().length).toBeGreaterThan(0);
+  expect(getProjects("en").length).toBeGreaterThan(0);
 });

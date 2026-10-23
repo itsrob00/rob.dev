@@ -194,9 +194,15 @@ function resumeInputs(root: string): Input[] {
     frontmatterOnly: false,
   }));
   for (const { dir, extension } of RUNTIME_READS) {
-    for (const name of fs.readdirSync(path.join(root, dir))) {
+    for (const name of fs.readdirSync(path.join(root, dir), {
+      encoding: "utf8",
+      recursive: true,
+    })) {
       if (name.endsWith(extension))
-        inputs.push({ path: `${dir}/${name}`, frontmatterOnly: true });
+        inputs.push({
+          path: toRepoPath(root, path.join(dir, name)),
+          frontmatterOnly: true,
+        });
     }
   }
   return inputs;
