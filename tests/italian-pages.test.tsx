@@ -19,6 +19,11 @@ vi.mock("@/lib/language-versions", async (importOriginal) => {
   };
 });
 
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: () => "/it",
+}));
+
 // Project bodies are MDX, which Vitest doesn't compile; they're content, not interface.
 vi.mock("@/lib/projects", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../lib/projects")>()),
@@ -34,6 +39,7 @@ const ENGLISH: readonly (string | RegExp)[] = [
   "Selected Work",
   "Experience",
   "Sections",
+  "Language",
   "Résumé",
   "Role",
   "When",

@@ -34,7 +34,7 @@ export type Dictionary = {
   resume: string;
   /** The link home at the top of every page but home. */
   back: string;
-  /** The Privacy notice's label and the link to it. */
+  /** The Privacy notice's label. */
   privacy: string;
   /** The Privacy notice after its label, with Rob's email link in it. */
   privacyText: (email: ReactNode) => ReactNode;

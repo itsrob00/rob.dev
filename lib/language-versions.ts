@@ -51,6 +51,30 @@ export function pathIn(code: LanguageCode, path: SitePath): SitePath {
   return `/${code}${path.replace(/^\/(?=#|$)/, "")}`;
 }
 
+export type LanguageMenuEntry = {
+  code: LanguageCode;
+  name: string;
+  href: string;
+  current: boolean;
+};
+
+export function languageMenu(
+  pathname: string,
+  hash: string,
+  versions: readonly LanguageVersion[] = publishedLanguageVersions(),
+): LanguageMenuEntry[] {
+  const [, current, ...rest] = pathname.split("/");
+  const path: SitePath = `/${rest.join("/")}${hash}`;
+  return versions
+    .filter((version) => version.published)
+    .map(({ code, name }) => ({
+      code,
+      name,
+      href: pathIn(code, path),
+      current: code === current,
+    }));
+}
+
 export function alternatesFor(path: SitePath): Record<string, SitePath> {
   return {
     ...Object.fromEntries(

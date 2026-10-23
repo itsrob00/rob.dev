@@ -174,7 +174,7 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
   await page.goto("/en");
 
   const reached: string[] = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 10; i++) {
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus");
     await expect(focused).not.toHaveCSS("outline-style", "none");
@@ -193,8 +193,146 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
     "GitHub",
     "Résumé",
     "Switch to light theme",
+    "EN\n▴",
   ]);
 });
+
+function languageMenu(page: Page) {
+  const nav = page.getByRole("navigation", { name: "Language" });
+  return {
+    nav,
+    pill: nav.getByRole("button", { name: "EN" }),
+    entries: nav.getByRole("link"),
+  };
+}
+
+test("the language menu opens upward from its pill after the clock and the theme switch, listing each Language version in its own language", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+
+  await pill.click();
+  await expect(pill).toHaveAttribute("aria-expanded", "true");
+  await expect(entries).toHaveText([/^English\s*EN$/]);
+  const english = entries.first();
+  await expect(english).toHaveAttribute("href", "/en");
+  await expect(english).toHaveAttribute("hreflang", "en");
+  await expect(english).toHaveAttribute("lang", "en");
+  await expect(english).toHaveAttribute("aria-current", "page");
+  await expect(english).not.toHaveAttribute("target", /.*/);
+
+  const pillBox = (await pill.boundingBox())!;
+  const listBox = (await english.boundingBox())!;
+  expect(listBox.y + listBox.height).toBeLessThan(pillBox.y);
+
+  const theme = page.getByRole("button", { name: "Switch to light theme" });
+  const clock = page.getByText(/^\d\d:\d\d CES?T in Gaeta$/);
+  const row = await Promise.all(
+    [clock, theme, pill].map(async (item) => (await item.boundingBox())!),
+  );
+  expect(row[0].x).toBeLessThan(row[1].x);
+  expect(row[1].x).toBeLessThan(row[2].x);
+  expect(Math.abs(row[1].y - row[2].y)).toBeLessThan(2);
+});
+
+test("the language menu closes on Escape, returning focus to its pill, and on a click outside it", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+
+  await pill.focus();
+  await page.keyboard.press("Enter");
+  await expect(pill).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Tab");
+  await expect(entries.first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+  await expect(pill).toBeFocused();
+
+  await pill.click();
+  await expect(entries).toHaveCount(1);
+  await page.getByRole("heading", { level: 1 }).click();
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+});
+
+test("the language menu links to the section the visitor was reading", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page
+    .getByRole("navigation", { name: "Sections" })
+    .getByRole("link", { name: "Stack" })
+    .click();
+  await expect(page).toHaveURL(/\/en#stack$/);
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await expect(entries.first()).toHaveAttribute("href", "/en#stack");
+});
+
+test("picking a language keeps the theme, with no flash", async ({ page }) => {
+  await page.goto("/en");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await page.goto("/en/resume");
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await page.route("**/_next/static/chunks/**/*.js", (route) => route.abort());
+  const loaded = page.waitForEvent("load");
+  await entries.first().click();
+  await loaded;
+  await expect(page).toHaveURL(/\/en\/resume$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(246, 244, 240)",
+  );
+});
+
+test("the language menu fits a 375px screen when open, and is hidden in print", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await expect(entries.first()).toBeInViewport();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(pill).toBeHidden();
+  await expect(entries.first()).toBeHidden();
+});
+
+test("the language menu rises as it opens, and its dot is set to glide", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { nav, pill } = languageMenu(page);
+  await pill.click();
+  expect(await animations(nav)).toBeGreaterThan(0);
+  expect(await glideDuration(nav)).not.toBe("0s");
+});
+
+function glideDuration(nav: Locator) {
+  return nav.evaluate((root) => {
+    const id = root.querySelector("button")!.getAttribute("aria-controls")!;
+    const dot = document
+      .getElementById(id)!
+      .querySelector(":scope > [aria-hidden]")!;
+    return getComputedStyle(dot).transitionDuration;
+  });
+}
 
 test("section nav scrolls to a section and marks it as the current one", async ({
   page,
@@ -398,14 +536,26 @@ test("the Privacy notice is a note at the foot of the home page, outside the sec
 });
 
 for (const route of ["/en/projects/devflow", "/en/resume"]) {
-  test(`${route} links to the Privacy notice at its foot`, async ({ page }) => {
+  test(`${route} has the language menu at its foot, where the Privacy link was`, async ({
+    page,
+  }) => {
     const errors = trackErrors(page);
     await page.goto(route);
+    await expect(
+      page.getByRole("link", { name: "Privacy", exact: true }),
+    ).toHaveCount(0);
 
-    await page.getByRole("link", { name: "Privacy", exact: true }).click();
-
-    await expect(page).toHaveURL(/\/en#privacy$/);
-    await expect(page.locator("#privacy")).toBeInViewport();
+    const { pill, entries } = languageMenu(page);
+    await expect(page.locator("footer").locator(pill)).toBeVisible();
+    await pill.click();
+    await expect(entries).toHaveCount(1);
+    await expect(entries.first()).toHaveAttribute("href", route);
+    await expect(entries.first()).toBeInViewport();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
     await page.waitForLoadState("networkidle");
     expect(errors).toEqual([]);
   });
@@ -462,6 +612,17 @@ test.describe("under reduced motion", () => {
     const toDark = page.getByRole("button", { name: "Switch to dark theme" });
     expect(await animations(toDark)).toBe(0);
     expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
+  });
+
+  test("the language menu opens without rising, and its dot won't glide", async ({
+    page,
+  }) => {
+    await page.goto("/en");
+    const { nav, pill, entries } = languageMenu(page);
+    await pill.click();
+    await expect(entries.first()).toBeVisible();
+    expect(await animations(nav)).toBe(0);
+    expect(await glideDuration(nav)).toBe("0s");
   });
 
   test("home content is visible at first paint, before any script runs", async ({
@@ -740,9 +901,7 @@ for (const theme of ["dark", "light"] as const) {
       "rgb(255, 255, 255)",
     );
     await expect(page.getByRole("link", { name: "← Rob" })).toBeHidden();
-    await expect(
-      page.getByRole("link", { name: "Privacy", exact: true }),
-    ).toBeHidden();
+    await expect(languageMenu(page).pill).toBeHidden();
     await expect(page.getByRole("link", { name: "Download PDF" })).toBeHidden();
 
     // Accent only on links: every other piece of text is a shade of grey.

@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { dictionary } from "@/lib/dictionaries";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
+import { LanguageMenu } from "./language-menu";
 import { NavLink, PageTransition } from "./route-transition";
 import styles from "./one-column-page.module.css";
 
 /**
  * The shell for every page that isn't home (Project pages, the Résumé): one centred column with
- * "← Rob" at the top and a link to the Privacy notice at the foot. It owns the chrome that never
+ * "← Rob" at the top and the language menu at the foot. It owns the chrome that never
  * prints, and the page's route transition.
  */
 export function OneColumnPage({
@@ -29,13 +30,7 @@ export function OneColumnPage({
         </NavLink>
         {children}
         <footer className={styles.footer}>
-          <NavLink
-            href={pathIn(lang, "/#privacy")}
-            direction="back"
-            className={styles.chrome}
-          >
-            {t.privacy}
-          </NavLink>
+          <LanguageMenu label={t.language} />
         </footer>
       </main>
     </PageTransition>

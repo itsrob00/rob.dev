@@ -3,6 +3,7 @@ import { dictionary } from "@/lib/dictionaries";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
 import { Anchor } from "./anchor";
 import { GaetaClock } from "./gaeta-clock";
+import { LanguageMenu } from "./language-menu";
 import { FadeUp } from "./motion";
 import { NavLink } from "./route-transition";
 import { SectionNav, type NavItem } from "./section-nav";
@@ -49,6 +50,7 @@ export function IdentityColumn({
         <div className={styles.meta}>
           <GaetaClock place={t.clock} />
           <ThemeToggle labels={t.themeSwitch} />
+          <LanguageMenu label={t.language} align="end" />
         </div>
       </div>
     </FadeUp>
