@@ -20,16 +20,18 @@ import styles from "./page.module.css";
 // Static export: one page per Project, and any other slug is a 404.
 export const dynamicParams = false;
 
-export function generateStaticParams() {
-  return getProjects().map(({ slug }) => ({ slug }));
+export function generateStaticParams({ params }: { params: { lang: string } }) {
+  return getProjects(languageVersion(params.lang).code).map(({ slug }) => ({
+    slug,
+  }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/projects/[slug]">): Promise<Metadata> {
   const { lang, slug } = await params;
-  const project = getProject(slug);
   const version = languageVersion(lang);
+  const project = getProject(version.code, slug);
   return project
     ? pageMetadata({
         version,
@@ -46,9 +48,9 @@ export default async function ProjectPage({
 }: PageProps<"/[lang]/projects/[slug]">) {
   const { lang, slug } = await params;
   const { code } = languageVersion(lang);
-  const project = getProject(slug);
+  const project = getProject(code, slug);
   if (!project) notFound();
-  const Body = await loadProjectBody(project);
+  const Body = await loadProjectBody(code, project);
   const { repo, live } = project.links;
   const t = dictionary(code).project;
 

@@ -1,41 +1,6 @@
-import type { EducationDates } from "@/lib/resume";
+import type { ResumeRecord } from ".";
 
-// What only the Résumé shows. A fact home shows any part of lives in profile.ts, experience.ts or
-// stack.ts instead.
-
-/** One line of the Skills section: "Label: item, item". */
-export type SkillGroup = {
-  label: string;
-  items: readonly [string, ...string[]];
-};
-
-/** CEFR levels, plus "Native" for a mother tongue. A typo or an invented level fails the type check. */
-export type Proficiency = "Native" | "C2" | "C1" | "B2" | "B1" | "A2" | "A1";
-
-export type Language = { name: string; proficiency: Proficiency };
-
-export type Education = {
-  title: string;
-  /** School and town, never an address. */
-  institution: string;
-  dates: EducationDates;
-  detail?: string;
-};
-
-export type ResumeRecord = {
-  /** Under the "Profile" heading. Not profile.blurb, which stays one line for home. */
-  profileParagraph: string;
-  /** After profile.location in the contact list. */
-  remote: string;
-  skills: readonly SkillGroup[];
-  languages: readonly Language[];
-  /** Newest first. */
-  education: readonly Education[];
-  /** At the foot of the Résumé. */
-  gdprLine: string;
-};
-
-export const resume = {
+export const en = {
   profileParagraph:
     "Front-end developer working in React and TypeScript since 2023 on enterprise systems for the Italian public sector and Sisal. Currently working as Front-end Tech Lead on PCO, I set the technical direction for a team of 3 developers, work closely with back-end, analysts and the client, and am the sole owner of front-end quality with a suite of 1,000+ tests at 85%+ coverage. Pairing my experience and discipline with a tailor-made AI-agent workflow (available on my GitHub) allows me to ship quickly without lowering the quality bar.",
   remote: "Remote (CET)",

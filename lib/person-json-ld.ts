@@ -1,11 +1,12 @@
-import type { Profile } from "../content/profile";
+import type { Profile, ProfileCopy } from "../content/profile";
 
 /**
  * The schema.org Person block for the home page, as the text of a
  * <script type="application/ld+json">. "<" is escaped so no value can close the tag early.
  */
 export function personJsonLd(
-  profile: Pick<Profile, "name" | "role" | "site" | "linkedin" | "github">,
+  profile: Pick<Profile, "name" | "site" | "linkedin" | "github"> &
+    Pick<ProfileCopy, "role">,
 ): string {
   return JSON.stringify({
     "@context": "https://schema.org",

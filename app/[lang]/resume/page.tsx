@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Anchor } from "@/components/anchor";
 import { OneColumnPage } from "@/components/one-column-page";
-import { experience } from "@/content/experience";
-import { profile } from "@/content/profile";
-import { resume } from "@/content/resume";
+import { experience as experienceRecords } from "@/content/experience";
+import { profile, profileCopy } from "@/content/profile";
+import { resume as resumeRecords } from "@/content/resume";
 import { formatDateRange } from "@/lib/date-range";
 import { dictionary, type Dictionary } from "@/lib/dictionaries";
 import { languageVersion } from "@/lib/language-versions";
@@ -33,8 +33,11 @@ export async function generateMetadata({
     version,
     path: "/resume",
     title: t.resume,
-    description: t.resumePage.description(profile),
-    card: homeCard,
+    description: t.resumePage.description({
+      ...profile,
+      ...profileCopy[version.code],
+    }),
+    card: homeCard(version.code),
   });
 }
 
@@ -43,6 +46,8 @@ export default async function ResumePage({
 }: PageProps<"/[lang]/resume">) {
   const { code, pdfSuffix } = languageVersion((await params).lang);
   const pdf = `Roberto-Prats-${pdfSuffix}.pdf`;
+  const experience = experienceRecords[code];
+  const resume = resumeRecords[code];
   const t = dictionary(code);
   const { headings } = t.resumePage;
   return (
@@ -55,13 +60,17 @@ export default async function ResumePage({
       <article className={styles.resume}>
         <header className={styles.header}>
           <h1 className={styles.name}>{profile.name}</h1>
-          <p className={styles.role}>{profile.role}</p>
+          <p className={styles.role}>{profileCopy[code].role}</p>
           <ul
             className={styles.contact}
             aria-label={t.resumePage.contact}
             data-contact=""
           >
-            {contactItems(profile, resume.remote, t.email).map((item) => (
+            {contactItems(
+              { ...profile, ...profileCopy[code] },
+              resume.remote,
+              t.email,
+            ).map((item) => (
               <Contact
                 key={item.kind === "text" ? item.text : item.href}
                 {...item}
@@ -115,7 +124,7 @@ export default async function ResumePage({
 
         <Section id="projects" title={headings.projects}>
           <ol className={styles.entries}>
-            {getProjects().map((project) => (
+            {getProjects(code).map((project) => (
               <li key={project.slug}>
                 <Entry
                   title={project.title}

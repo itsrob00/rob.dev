@@ -5,12 +5,13 @@ import type { MDXContent } from "mdx/types";
 import { z } from "zod";
 import { isYearMonth, type DateRange, type YearMonth } from "./date-range";
 import { dictionary } from "./dictionaries";
-import type { LanguageCode } from "./language-versions";
+import { LANGUAGE_VERSIONS, type LanguageCode } from "./language-versions";
 
-// Projects: one MDX file each in content/projects/, and the only way to read them. Every call
-// re-reads and re-validates the folder (no cache, so `next dev` is never stale and tests point
-// process.cwd() at a fixture). gray-matter parses the frontmatter here; remark-frontmatter in
-// next.config.ts only keeps the --- block out of the rendered body.
+// Projects: one MDX file each per Language version, in content/projects/<code>/ under a shared slug,
+// and the only way to read them. Every call re-reads and re-validates the folder (no cache, so
+// `next dev` is never stale and tests point process.cwd() at a fixture). gray-matter parses the
+// frontmatter here; remark-frontmatter in next.config.ts only keeps the --- block out of the
+// rendered body.
 
 export type Project = DateRange & {
   /** Sets the URL. Unique across Projects. */
@@ -27,14 +28,17 @@ export type Project = DateRange & {
   cover?: { src: string; alt: string };
 };
 
-/** Every Project, newest first by start (ties by slug, so file names never decide the order). */
-export function getProjects(): Project[] {
-  return readFolder().map((entry) => entry.project);
+/** Every Project in `lang`, newest first by start (ties by slug, so file names never decide the order). */
+export function getProjects(lang: LanguageCode): Project[] {
+  return readFolder(lang).map((entry) => entry.project);
 }
 
-/** The Project with this slug, or undefined (the page turns that into a 404). */
-export function getProject(slug: string): Project | undefined {
-  return getProjects().find((project) => project.slug === slug);
+/** The Project with this slug in `lang`, or undefined (the page turns that into a 404). */
+export function getProject(
+  lang: LanguageCode,
+  slug: string,
+): Project | undefined {
+  return getProjects(lang).find((project) => project.slug === slug);
 }
 
 /** "Open source · 2026" (start year), the label on the card, the page header and the share image. */
@@ -96,20 +100,64 @@ const frontmatterSchema = z
   });
 
 /**
- * Reads, validates and sorts the folder. Collects every problem in every file and throws them
- * as one Error, so a failed build lists everything to fix at once.
+ * Reads and validates every Language version's folder, then sorts the one for `lang`. Collects every
+ * problem in every file, and every Project missing in a Language version, and throws them as one
+ * Error, so a failed build lists everything to fix at once.
  */
-function readFolder(): Entry[] {
-  const dir = path.join(process.cwd(), FOLDER);
-  const entries: Entry[] = [];
+function readFolder(lang: LanguageCode): Entry[] {
+  const root = path.join(process.cwd(), FOLDER);
+  const codes: readonly string[] = LANGUAGE_VERSIONS.map(({ code }) => code);
   const problems: string[] = [];
 
-  const files = fs.readdirSync(dir).filter((file) => !file.startsWith("."));
-  if (files.length === 0) throw new Error(`No Projects in ${FOLDER}`);
+  for (const name of fs.readdirSync(root)) {
+    if (!name.startsWith(".") && !codes.includes(name)) {
+      problems.push(
+        `${name}: only Language version folders (${codes.join(", ")}) belong here`,
+      );
+    }
+  }
 
+  const byLanguage = new Map(
+    LANGUAGE_VERSIONS.map(({ code }) => [code, readLanguage(code, problems)]),
+  );
+  const slugs = new Set(
+    [...byLanguage.values()].flat().map((entry) => entry.project.slug),
+  );
+  if (slugs.size === 0 && problems.length === 0) {
+    throw new Error(`No Projects in ${FOLDER}`);
+  }
+  for (const [code, entries] of byLanguage) {
+    for (const slug of slugs) {
+      if (!entries.some((entry) => entry.project.slug === slug)) {
+        problems.push(`${code}: no file for Project "${slug}"`);
+      }
+    }
+  }
+
+  if (problems.length > 0) {
+    throw new Error(
+      `Invalid Projects in ${FOLDER}:\n${problems.map((p) => `  ${p}`).join("\n")}`,
+    );
+  }
+  return byLanguage
+    .get(lang)!
+    .sort(
+      (a, b) =>
+        b.project.start.localeCompare(a.project.start) ||
+        a.project.slug.localeCompare(b.project.slug),
+    );
+}
+
+/** One Language version's folder, validated. A missing folder holds no Projects. */
+function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
+  const dir = path.join(process.cwd(), FOLDER, code);
+  const entries: Entry[] = [];
+  if (!fs.existsSync(dir)) return entries;
+
+  const files = fs.readdirSync(dir).filter((file) => !file.startsWith("."));
   for (const file of files) {
     if (!file.endsWith(".mdx")) {
-      problems.push(`${file}: only .mdx files belong here`);
+      problems.push(`${code}/${file}: only .mdx files belong here`);
       continue;
     }
     const { data } = matter(fs.readFileSync(path.join(dir, file), "utf8"));
@@ -117,7 +165,9 @@ function readFolder(): Entry[] {
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
         const field = issue.path.join(".");
-        problems.push(`${file}: ${field ? `${field}: ` : ""}${issue.message}`);
+        problems.push(
+          `${code}/${file}: ${field ? `${field}: ` : ""}${issue.message}`,
+        );
       }
       continue;
     }
@@ -135,28 +185,21 @@ function readFolder(): Entry[] {
   for (const [slug, shared] of filesBySlug) {
     if (shared.length > 1) {
       const files = shared.map((entry) => `${entry.name}.mdx`).join(", ");
-      problems.push(`slug "${slug}" is used by ${files}`);
+      problems.push(`${code}: slug "${slug}" is used by ${files}`);
     }
   }
-
-  if (problems.length > 0) {
-    throw new Error(
-      `Invalid Projects in ${FOLDER}:\n${problems.map((p) => `  ${p}`).join("\n")}`,
-    );
-  }
-  return entries.sort(
-    (a, b) =>
-      b.project.start.localeCompare(a.project.start) ||
-      a.project.slug.localeCompare(b.project.slug),
-  );
+  return entries;
 }
 
-/** The compiled MDX body of a Project. Takes a Project, so only validated files reach the import. */
-export async function loadProjectBody(project: Project): Promise<MDXContent> {
-  const entry = readFolder().find((e) => e.project.slug === project.slug);
+/** The compiled MDX body of a Project in `lang`. Takes a Project, so only validated files reach the import. */
+export async function loadProjectBody(
+  lang: LanguageCode,
+  project: Project,
+): Promise<MDXContent> {
+  const entry = readFolder(lang).find((e) => e.project.slug === project.slug);
   if (!entry) throw new Error(`No Project file for slug "${project.slug}"`);
   const { default: Body } = (await import(
-    `@/content/projects/${entry.name}.mdx`
+    `@/content/projects/${lang}/${entry.name}.mdx`
   )) as { default: MDXContent };
   return Body;
 }

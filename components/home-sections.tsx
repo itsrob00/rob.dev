@@ -1,5 +1,5 @@
 import { experience } from "@/content/experience";
-import { profile } from "@/content/profile";
+import { profileCopy } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
@@ -12,8 +12,8 @@ import styles from "./home-sections.module.css";
 
 // The bodies of the home page's sections. app/page.tsx wraps each in its <section> and <h2>.
 
-export function About() {
-  return profile.about.map((paragraph) => (
+export function About({ lang }: { lang: LanguageCode }) {
+  return profileCopy[lang].about.map((paragraph) => (
     <p key={paragraph} className={styles.paragraph}>
       {paragraph}
     </p>
@@ -24,7 +24,7 @@ export function About() {
 export function SelectedWork({ lang }: { lang: LanguageCode }) {
   return (
     <ul className={styles.work}>
-      {getProjects().map((project) => (
+      {getProjects(lang).map((project) => (
         <LiftItem key={project.slug} className={styles.card}>
           <p className={styles.kicker}>{projectKicker(project, lang)}</p>
           <h3 className={styles.cardTitle}>
@@ -49,7 +49,7 @@ export function SelectedWork({ lang }: { lang: LanguageCode }) {
 export function ExperienceList({ lang }: { lang: LanguageCode }) {
   return (
     <ol className={styles.experience}>
-      {experience.map((entry) => (
+      {experience[lang].map((entry) => (
         <li key={entry.employer}>
           <h3 className={styles.employer}>{entry.employer}</h3>
           <p className={styles.tenure}>

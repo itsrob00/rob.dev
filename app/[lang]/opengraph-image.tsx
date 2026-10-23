@@ -1,4 +1,7 @@
-import { publishedLanguageVersions } from "@/lib/language-versions";
+import {
+  languageVersion,
+  publishedLanguageVersions,
+} from "@/lib/language-versions";
 import { homeCard } from "@/lib/site-metadata";
 import { renderShareCard } from "@/lib/share-images";
 
@@ -10,6 +13,10 @@ export function generateStaticParams() {
   return publishedLanguageVersions().map(({ code }) => ({ lang: code }));
 }
 
-export default function Image() {
-  return renderShareCard(homeCard);
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
+  return renderShareCard(homeCard(languageVersion((await params).lang).code));
 }

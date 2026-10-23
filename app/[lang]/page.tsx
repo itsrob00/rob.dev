@@ -10,7 +10,7 @@ import { IdentityColumn } from "@/components/identity-column";
 import { FadeUp } from "@/components/motion";
 import { PrivacyNotice } from "@/components/privacy-notice";
 import { PageTransition } from "@/components/route-transition";
-import { profile } from "@/content/profile";
+import { profile, profileCopy } from "@/content/profile";
 import { dictionary, type Dictionary } from "@/lib/dictionaries";
 import { languageVersion, type LanguageCode } from "@/lib/language-versions";
 import { personJsonLd } from "@/lib/person-json-ld";
@@ -21,11 +21,12 @@ import styles from "./page.module.css";
 export async function generateMetadata({
   params,
 }: PageProps<"/[lang]">): Promise<Metadata> {
+  const version = languageVersion((await params).lang);
   return pageMetadata({
-    version: languageVersion((await params).lang),
+    version,
     path: "/",
-    description: profile.blurb,
-    card: homeCard,
+    description: profileCopy[version.code].blurb,
+    card: homeCard(version.code),
   });
 }
 
@@ -53,7 +54,9 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       {/* Home only: the Person behind the site, for search engines. */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: personJsonLd(profile) }}
+        dangerouslySetInnerHTML={{
+          __html: personJsonLd({ ...profile, ...profileCopy[code] }),
+        }}
       />
       <div className={styles.grid}>
         <IdentityColumn lang={code} nav={nav} />

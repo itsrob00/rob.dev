@@ -14,7 +14,7 @@ export const dynamicParams = false;
 
 export function generateStaticParams() {
   return publishedLanguageVersions().flatMap(({ code }) =>
-    getProjects().map(({ slug }) => ({ lang: code, slug })),
+    getProjects(code).map(({ slug }) => ({ lang: code, slug })),
   );
 }
 
@@ -24,7 +24,8 @@ export default async function Image({
   params: Promise<{ lang: string; slug: string }>;
 }) {
   const { lang, slug } = await params;
-  const project = getProject(slug);
+  const { code } = languageVersion(lang);
+  const project = getProject(code, slug);
   if (!project) throw new Error("No such Project");
-  return renderShareCard(projectCard(project, languageVersion(lang).code));
+  return renderShareCard(projectCard(project, code));
 }

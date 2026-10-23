@@ -1,4 +1,4 @@
-import type { Profile } from "../content/profile";
+import type { Profile, ProfileCopy } from "../content/profile";
 import { formatDateRange, type DateRange } from "./date-range";
 import { dictionary } from "./dictionaries";
 import type { LanguageCode } from "./language-versions";
@@ -15,7 +15,8 @@ export type ContactItem =
   | (Link & { kind: "print-link" });
 
 export function contactItems(
-  profile: Pick<Profile, "location" | "email" | "site" | "linkedin" | "github">,
+  profile: Pick<Profile, "email" | "site" | "linkedin" | "github"> &
+    Pick<ProfileCopy, "location">,
   remote: string,
   emailLabel: string,
 ): readonly ContactItem[] {

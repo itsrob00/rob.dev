@@ -45,13 +45,13 @@ export const it: Dictionary = {
     kicker: (year) => `Open source · ${year}`,
     role: "Ruolo",
     when: "Periodo",
-    repository: "Codice sorgente ↗",
+    repository: "Repository ↗",
     live: "Sito online ↗",
     repoPreview: (name) => `${name} su GitHub`,
   },
   resumePage: {
     description: ({ name, role, location }) =>
-      `Curriculum di ${name}, ${role} di base a ${location}.`,
+      `Curriculum di ${name}, ${role} con base a ${location}.`,
     download: "Scarica PDF",
     contact: "Contatti",
     headings: {
