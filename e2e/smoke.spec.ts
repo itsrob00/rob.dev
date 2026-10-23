@@ -163,18 +163,22 @@ test("home sections show About, Experience and Stack from the records", async ({
   ).toBeVisible();
   const experience = page.getByRole("region", { name: "Experience" });
   await expect(experience.getByRole("heading", { level: 3 })).toHaveText([
-    "Exolab S.r.l., Rome · Front-end Software Engineer",
+    "Exolab S.r.l., Rome",
   ]);
+  await expect(
+    experience.getByText("Front-end Software Engineer · 2023 – now"),
+  ).toBeVisible();
   await expect(experience.getByRole("heading", { level: 4 })).toHaveText([
     "PCO · Front-end Tech Lead",
     "VLT Admin Console Component Library · Front-end Consultant",
     "Athena · Front-end Consultant",
     "GestCert and EMCS · Front-end Developer",
   ]);
-  await expect(experience.getByText("2023 – now")).toBeVisible();
-  await expect(experience.getByText("2026 – now")).toBeVisible();
-  await expect(experience.getByText("2023 – 2024")).toBeVisible();
-  await expect(experience.getByText("Sogei, for ADM")).toBeVisible();
+  await expect(experience.getByText("2026 – now · Sogei")).toBeVisible();
+  await expect(experience.getByText("2025 · Sisal, via Reply")).toHaveCount(2);
+  await expect(
+    experience.getByText("2023 – 2024 · Sogei, for ADM"),
+  ).toBeVisible();
   // Compact: the tech lists and bullets are the Résumé's.
   await expect(experience.getByText(/Redux Toolkit|Sole owner/)).toHaveCount(0);
   await expect(

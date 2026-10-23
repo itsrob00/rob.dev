@@ -79,42 +79,63 @@
   list-style: none;
 }
 
-.entry {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 16px;
-  margin: 0 -20px;
-  padding: 20px;
-  border-radius: 12px;
-  transition: background-color 0.2s;
+.employer {
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.entry:hover {
-  background: var(--card);
+.tenure {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 15px;
 }
 
-.when {
-  padding-top: 4px;
+.engagements {
+  margin: 20px 0 0 6px;
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+  list-style: none;
+}
+
+.engagement {
+  position: relative;
+}
+
+.engagement + .engagement {
+  margin-top: 28px;
+}
+
+.engagement::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: -34px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.engagement[data-ongoing]::before {
+  background: var(--accent);
+}
+
+.meta {
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 12px;
 }
 
-.role {
+.name {
+  margin-top: 2px;
   font-size: 16px;
   font-weight: 500;
 }
 
-.organization {
+.role {
   color: var(--muted);
   font-weight: 400;
-}
-
-.client {
-  margin-top: 2px;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 12px;
 }
 
 .blurb {
@@ -144,13 +165,6 @@
   box-shadow: 0 0 0 1px var(--line);
   font-size: 14px;
   text-align: center;
-}
-
-@media (max-width: 860px) {
-  .entry {
-    grid-template-columns: 1fr;
-    gap: 4px;
-  }
 }
 
 @media (max-width: 560px) {
