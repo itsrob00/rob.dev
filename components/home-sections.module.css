@@ -65,6 +65,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .card {
     transition:
+      opacity 0.2s,
       border-color 0.2s,
       box-shadow 0.3s;
   }
@@ -145,30 +146,53 @@
   line-height: 1.7;
 }
 
-/* Each tile draws its own ring in the 1px gap as the grid lines, so none show before the tiles rise.
-   8 items fill 4 or 2 columns exactly. */
-.stack {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-}
-
-.tile {
+.strip {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  padding: 20px 16px 16px;
-  box-shadow: 0 0 0 1px var(--line);
-  font-size: 14px;
-  text-align: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+  list-style: none;
 }
 
-@media (max-width: 560px) {
-  .stack {
-    grid-template-columns: repeat(2, 1fr);
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.chip:hover,
+.chip[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+
+.chip[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Dimmed, never hidden: a dimmed card's link stays in the tab order, and shows in full while focused. */
+.chip[data-dimmed],
+.card[data-dimmed]:not(:focus-within) {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chip {
+    transition:
+      opacity 0.2s,
+      border-color 0.2s,
+      background-color 0.2s;
   }
 }

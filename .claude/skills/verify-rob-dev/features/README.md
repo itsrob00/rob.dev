@@ -27,8 +27,8 @@ Each feature file starts with an H1 and one paragraph on what the visitor sees, 
 
 ## Features
 
-- [Home sections and nav](./home-sections.md): About, Stack, Selected Work and Experience, the section nav and its current-section marker.
+- [Home sections and nav](./home-sections.md): About, Work (the Stack chips and Project cards that light each other) and Experience, the section nav and its current-section marker.
 - [Experience](./experience.md): Rob's tenure at each employer, with its Engagements on one rail.
-- [Project page](./project-page.md): a Selected Work card opens the Project's write-up, ending with its Repo preview.
+- [Project page](./project-page.md): a Work card opens the Project's write-up, ending with its Repo preview when it has a repo.
 - [Résumé](./resume.md): the printable Résumé page and its PDF download.
 - [Theme](./theme.md): dark by default, a toggle to light that persists.

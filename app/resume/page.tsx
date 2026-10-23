@@ -6,7 +6,7 @@ import { experience } from "@/content/experience";
 import { profile } from "@/content/profile";
 import { resume } from "@/content/resume";
 import { formatDateRange } from "@/lib/date-range";
-import { getProjects } from "@/lib/projects";
+import { getProjects, isOpenable } from "@/lib/projects";
 import {
   contactItems,
   displayUrl,
@@ -100,28 +100,31 @@ export default function ResumePage() {
 
         <Section title="Projects">
           <ol className={styles.entries}>
-            {getProjects().map((project) => (
-              <li key={project.slug}>
-                <Entry
-                  title={project.title}
-                  detail={project.role}
-                  when={formatDateRange(project, "month")}
-                />
-                <p className={styles.text}>{project.summary}</p>
-                <p className={styles.meta}>
-                  {project.stack.join(" · ")}
-                  {[project.links.repo, project.links.live].map(
-                    (href) =>
-                      href && (
-                        <span key={href}>
-                          {" · "}
-                          <Anchor href={href}>{displayUrl(href)}</Anchor>
-                        </span>
-                      ),
-                  )}
-                </p>
-              </li>
-            ))}
+            {/* Only what a reader can open: one that isn't public yet waits on the site. */}
+            {getProjects()
+              .filter(isOpenable)
+              .map((project) => (
+                <li key={project.slug}>
+                  <Entry
+                    title={project.title}
+                    detail={project.role}
+                    when={formatDateRange(project, "month")}
+                  />
+                  <p className={styles.text}>{project.summary}</p>
+                  <p className={styles.meta}>
+                    {project.stack.join(" · ")}
+                    {[project.links.repo, project.links.live].map(
+                      (href) =>
+                        href && (
+                          <span key={href}>
+                            {" · "}
+                            <Anchor href={href}>{displayUrl(href)}</Anchor>
+                          </span>
+                        ),
+                    )}
+                  </p>
+                </li>
+              ))}
           </ol>
         </Section>
 

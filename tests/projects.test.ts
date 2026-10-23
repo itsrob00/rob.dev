@@ -1,6 +1,6 @@
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getProject, getProjects } from "../lib/projects";
+import { getProject, getProjects, isOpenable } from "../lib/projects";
 
 // Each fixture is a miniature repo root holding content/projects/*.mdx, so the tests call the
 // same functions the pages do, pointed at the fixture through process.cwd().
@@ -23,6 +23,24 @@ describe("getProjects", () => {
       "older",
     ]);
   });
+
+  test("lists the Projects a visitor can open before newer ones that aren't public yet", () => {
+    useFixture("openable-first");
+    expect(getProjects().map((project) => project.slug)).toEqual([
+      "public-older",
+      "not-public-newer",
+    ]);
+  });
+});
+
+describe("isOpenable", () => {
+  test("a Project with a repo or live link can be opened; one without links can't", () => {
+    useFixture("openable-first");
+    const [publicOlder, notPublic] = getProjects();
+    expect(isOpenable(publicOlder)).toBe(true);
+    expect(isOpenable(notPublic)).toBe(false);
+    expect(notPublic.links).toEqual({});
+  });
 });
 
 describe("getProject", () => {
@@ -31,7 +49,7 @@ describe("getProject", () => {
     expect(getProject("middle")).toEqual({
       slug: "middle",
       href: "/projects/middle",
-      kicker: "Open source · 2025",
+      kicker: "Concept · 2025",
       title: "Middle",
       summary: "Started in between.",
       role: "Maintainer",
@@ -56,10 +74,10 @@ describe("invalid Projects fail the build", () => {
     expect(() => getProjects()).toThrow(/no-title\.mdx.*title/);
   });
 
-  test("rejects a Project with neither a repo nor a live link", () => {
+  test("rejects an empty links block, which is a typo for either a link or no links", () => {
     useFixture("no-link");
     expect(() => getProjects()).toThrow(
-      /no-link\.mdx: links: add a repo or a live link/,
+      /no-link\.mdx: links: add a repo or a live link, or leave links out/,
     );
   });
 

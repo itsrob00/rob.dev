@@ -212,7 +212,7 @@ describe("the Résumé's inputs in this repo", () => {
     expect(inputs).not.toEqual(
       expect.arrayContaining([
         expect.stringMatching(
-          /content\/stack|technology|home-sections|stack-tags/,
+          /content\/stack|technology|home-sections|stack-tags|work-highlight/,
         ),
       ]),
     );
