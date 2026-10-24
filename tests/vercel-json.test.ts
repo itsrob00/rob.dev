@@ -51,10 +51,20 @@ describe("the bare domain's redirect", () => {
         `${code}-${code.toUpperCase()},${code};q=0.9,en-US;q=0.8,en;q=0.7`,
         `en-US,en;q=0.9,${code};q=0.8`,
         `en-GB, ${code}-CH;q=0.5`,
+        `${code};q=1`,
+        `${code};q=0.05,en`,
+        `${code};q=0,${code}-CH;q=0.5`,
       ]) {
         expect(asks(header), header).toBe(true);
       }
-      for (const header of ["en-US,en;q=0.9", "fr-FR,fr;q=0.9", "*"]) {
+      for (const header of [
+        "en-US,en;q=0.9",
+        "fr-FR,fr;q=0.9",
+        "*",
+        `${code};q=0`,
+        `en-US,en;q=0.9,${code};q=0.000`,
+        `${code}-${code.toUpperCase()};q=0, en`,
+      ]) {
         expect(asks(header), header).toBe(false);
       }
     }

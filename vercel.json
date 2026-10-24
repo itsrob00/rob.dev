@@ -52,7 +52,7 @@
         {
           "type": "header",
           "key": "accept-language",
-          "value": "(.*,)?\\s*it(-[A-Za-z0-9]+)?\\s*(;.*|,.*)?"
+          "value": "(.*,)?\\s*it(-[A-Za-z0-9]+)?\\s*(;\\s*q\\s*=\\s*(1(\\.0*)?|0\\.[0-9]*[1-9][0-9]*)\\s*)?(,.*)?"
         }
       ],
       "destination": "/it",
