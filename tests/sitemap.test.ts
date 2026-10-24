@@ -24,16 +24,23 @@ describe("sitemapEntries", () => {
       "https://itsrob.dev/en/resume",
       "https://itsrob.dev/en/projects/newest",
       "https://itsrob.dev/en/projects/older",
+      "https://itsrob.dev/it",
+      "https://itsrob.dev/it/resume",
+      "https://itsrob.dev/it/projects/newest",
+      "https://itsrob.dev/it/projects/older",
     ]);
   });
 
   test("gives each page its alternates, with x-default at the bare domain", () => {
-    const [, resume] = sitemapEntries([]);
-    expect(resume.alternates).toEqual({
-      languages: {
-        en: "https://itsrob.dev/en/resume",
-        "x-default": "https://itsrob.dev",
-      },
-    });
+    const [, englishResume, , italianResume] = sitemapEntries([]);
+    for (const resume of [englishResume, italianResume]) {
+      expect(resume.alternates).toEqual({
+        languages: {
+          en: "https://itsrob.dev/en/resume",
+          it: "https://itsrob.dev/it/resume",
+          "x-default": "https://itsrob.dev",
+        },
+      });
+    }
   });
 });

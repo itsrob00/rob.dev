@@ -10,9 +10,10 @@ import {
 } from "../lib/language-versions";
 
 describe("the language list", () => {
-  test("publishes English only, for now", () => {
+  test("publishes English, then Italian", () => {
     expect(publishedLanguageVersions().map((version) => version.code)).toEqual([
       "en",
+      "it",
     ]);
   });
 
@@ -28,9 +29,15 @@ describe("the language list", () => {
 
   test("finds a published Language version by its code", () => {
     expect(languageVersion("en")).toBe(DEFAULT_LANGUAGE_VERSION);
+    expect(languageVersion("it")).toMatchObject({
+      code: "it",
+      name: "Italiano",
+      ogLocale: "it_IT",
+      pdfSuffix: "IT",
+    });
   });
 
-  test.each(["it", "fr", ""])(
+  test.each(["fr", "IT", ""])(
     "has no published Language version %j",
     (code) => {
       expect(() => languageVersion(code)).toThrow(/Language version/);
@@ -85,8 +92,19 @@ describe("languageMenu", () => {
     ).toEqual([false, true]);
   });
 
+  test("lists English and Italiano on the live site", () => {
+    expect(languageMenu("/it", "#about")).toEqual([
+      { code: "en", name: "English", href: "/en#about", current: false },
+      { code: "it", name: "Italiano", href: "/it#about", current: true },
+    ]);
+  });
+
   test("leaves out unpublished Language versions", () => {
-    expect(languageMenu("/en", "#about")).toEqual([
+    const englishOnly = LANGUAGE_VERSIONS.map((version) => ({
+      ...version,
+      published: version.code === "en",
+    }));
+    expect(languageMenu("/en", "#about", englishOnly)).toEqual([
       { code: "en", name: "English", href: "/en#about", current: true },
     ]);
   });
@@ -96,8 +114,13 @@ describe("alternatesFor", () => {
   test("lists the page in every published Language version, with x-default at the bare domain", () => {
     expect(alternatesFor("/resume")).toEqual({
       en: "/en/resume",
+      it: "/it/resume",
       "x-default": "/",
     });
-    expect(alternatesFor("/")).toEqual({ en: "/en", "x-default": "/" });
+    expect(alternatesFor("/")).toEqual({
+      en: "/en",
+      it: "/it",
+      "x-default": "/",
+    });
   });
 });

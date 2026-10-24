@@ -11,7 +11,7 @@ const LIST = [
     name: "Italiano",
     ogLocale: "it_IT",
     pdfSuffix: "IT",
-    published: false,
+    published: true,
   },
 ] as const satisfies readonly {
   code: string;

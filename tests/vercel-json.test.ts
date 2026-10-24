@@ -43,9 +43,20 @@ describe("the bare domain's redirect", () => {
       expect(rule?.has, code).toEqual([
         expect.objectContaining({ type: "header", key: "accept-language" }),
       ]);
-      expect(new RegExp(rule!.has![0].value).test(`${code},en;q=0.8`)).toBe(
-        true,
-      );
+      const asks = (header: string) =>
+        new RegExp(`^${rule!.has![0].value}$`).test(header);
+      for (const header of [
+        code,
+        `${code},en;q=0.8`,
+        `${code}-${code.toUpperCase()},${code};q=0.9,en-US;q=0.8,en;q=0.7`,
+        `en-US,en;q=0.9,${code};q=0.8`,
+        `en-GB, ${code}-CH;q=0.5`,
+      ]) {
+        expect(asks(header), header).toBe(true);
+      }
+      for (const header of ["en-US,en;q=0.9", "fr-FR,fr;q=0.9", "*"]) {
+        expect(asks(header), header).toBe(false);
+      }
     }
     expect(home).toHaveLength(others.length + 1);
   });

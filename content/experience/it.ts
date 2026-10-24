@@ -21,7 +21,7 @@ export const it = [
           "Vitest",
         ],
         description:
-          "Piattaforma per la rendicontazione di tempi e attività delle strutture centrali e territoriali della PA, avviata da IBM, passata a Exolab e tuttora in sviluppo.",
+          "Piattaforma per la rendicontazione di tempi e attività delle strutture centrali e territoriali della PA, ereditata da IBM e tuttora in sviluppo.",
         bullets: [
           "Unico responsabile della QA front-end: ho introdotto gli unit test, assenti quando abbiamo preso in carico il progetto, e portato la suite a oltre 1.000 test con coverage superiore all'85%. Approvo ogni rilascio front-end.",
           "Sono il riferimento tecnico di 3 sviluppatori front-end e definisco architettura e UX. Lavoro con 4 sviluppatori back-end e 2 analisti e presento le proposte direttamente ai clienti.",
@@ -45,7 +45,7 @@ export const it = [
         description:
           "Component library per la nuova console di amministrazione delle VLT di Sisal, realizzata nei 3 mesi risparmiati grazie alla consegna anticipata di Athena.",
         bullets: [
-          "Ho progettato e sviluppato da solo la component library, curando sia la UI/UX sia l'implementazione con Claude Design e Claude Code.",
+          "L'ho progettata e sviluppata da solo, dalla UI/UX all'implementazione, con Claude Design e Claude Code.",
           "Sisal la sta usando per realizzare la nuova console, che prenderà il posto della vecchia applicazione scritta in Visual Basic.",
         ],
       },

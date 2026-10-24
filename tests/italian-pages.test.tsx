@@ -8,17 +8,6 @@ import ResumePage, {
 } from "../app/[lang]/resume/page";
 import { getProjects } from "../lib/projects";
 
-// Italian is unpublished, so languageVersion("it") throws. Here it renders as if published.
-vi.mock("@/lib/language-versions", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../lib/language-versions")>();
-  return {
-    ...actual,
-    languageVersion: (code: string) =>
-      actual.LANGUAGE_VERSIONS.find((version) => version.code === code),
-  };
-});
-
 vi.mock("next/navigation", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/navigation")>()),
   usePathname: () => "/it",
