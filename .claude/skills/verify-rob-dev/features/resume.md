@@ -6,7 +6,7 @@ The Résumé is a one-column page built from the same records as the site (Profi
 
 - `resume-page` `/en/resume` renders every section from the records.
 - `resume-print` printing gives one A4 page, black on white, links the only colour.
-- `resume-pdf` `Download PDF` downloads `Roberto-Prats-EN.pdf` (each Language version has its own, `Roberto-Prats-<SUFFIX>.pdf`).
+- `resume-pdf` `Download PDF` downloads `Roberto-Prats-EN.pdf`, and the Italian Résumé's `Scarica PDF` downloads `Roberto-Prats-IT.pdf`.
 
 ## How to get to it (user POV)
 

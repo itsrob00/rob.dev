@@ -12,3 +12,7 @@ The Résumé PDF shows Rob's full name and phone number, as a recruiter expects,
 - `npm run resume:pdf` refuses to run without both values, so a PDF can't ship without them.
 - The page carries no placeholder: `scripts/resume-private.mts` finds the page's own h1, "Contact" list and title, and fails loudly when they stop matching. The e2e print test calls the same function with stand-in values, so CI prints the PDF's header, not the page's shorter one.
 - After the build, the render checks that neither value turned up in a tracked file or in the built site.
+
+## Update, 2026-10-24
+
+At Rob's choice, the PDFs are now named `Roberto-Prats-<LANG>.pdf` (`Roberto-Prats-EN.pdf`, `Roberto-Prats-IT.pdf`), so the filename carries the full name. The leak check doesn't match it, because it looks for the name as written and the filename hyphenates it. The phone number still reaches only the PDF.

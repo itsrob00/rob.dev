@@ -60,5 +60,5 @@ The card at the end of a Project page that shows the Project's repository the wa
 _Avoid_: Link preview, unfurl, embed
 
 **Language version**:
-One language's copy of the site: English and Italian today, more later. Every page exists in each, and each has its own Résumé. Not the same as the languages Rob speaks, which the Résumé lists.
+One language's copy of the site: English and Italian today, more later. Every page exists in each, at its own path (`/en/…`, `/it/…`), and each has its own Résumé. One list names them all; a Language version goes live only once it's published there. Not the same as the languages Rob speaks, which the Résumé lists.
 _Avoid_: Locale, translation, edition

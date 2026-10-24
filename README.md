@@ -29,9 +29,15 @@ Node 24 (see `.nvmrc`) and npm.
 
 A pre-commit hook (Husky + lint-staged) formats and lints staged files.
 
+## Language versions
+
+Every page exists in English and in Italian, at `/en/…` and `/it/…`. The languages come from one list, `lib/language-versions.ts`: the routes, the language menu, the alternate-language links, the sitemap and the Résumé PDFs all follow its published entries. Adding a language means adding an entry, its copy (a dictionary in `lib/dictionaries/`, a file per content module and a folder of Project write-ups, each named by its code) and its Résumé. The type checker fails while any copy is missing, and an entry stays off the site until it's published.
+
+A bare `/` redirects to `/it` when the browser's `Accept-Language` asks for Italian, and to `/en` otherwise. The rule is in `vercel.json`, which `npm run preview` ignores, so check it on a Vercel preview.
+
 ## Résumé PDFs
 
-Each published Language version has its own Résumé PDF, printed from its Résumé page and committed: `public/Roberto-Prats-EN.pdf` from `/en/resume`, and `public/Roberto-Prats-<SUFFIX>.pdf` for each other one, with the suffix from `lib/language-versions.ts`. The Résumé's "Download PDF" links to its own file, and `/Rob-Resume.pdf` redirects to the English one.
+Each published Language version has its own Résumé PDF, printed from its Résumé page and committed: `public/Roberto-Prats-EN.pdf` from `/en/resume` and `public/Roberto-Prats-IT.pdf` from `/it/resume`, with the suffix from `lib/language-versions.ts`. Each Résumé's "Download PDF" ("Scarica PDF") links to its own file, and `/Rob-Resume.pdf` redirects to the English one.
 
 Each PDF has a lock beside the page, `app/[lang]/resume/resume-pdf.<code>.lock`. It holds the sha256 of every file that Language version's Résumé is built from (found by following the page's imports), of the print settings and of the PDF itself. Another Language version's copy (a file named by its code, such as `it.ts`, or a folder named by it) is left out, so editing the Italian copy stales only the Italian PDF, while shared code stales them all. When a line stops matching, `npm run build` fails, locally, in CI and on Vercel, and so does a commit that stages a Résumé input. Then run `npm run resume:pdf` and commit the PDFs and locks it wrote. It formats the inputs, builds the site and prints each stale Résumé with Playwright's Chromium (`npx playwright install chromium` once). When nothing changed it does nothing; `npm run resume:pdf -- --force` re-renders every PDF anyway, for example after a Chromium update. An unpublished Language version gets no PDF.
 
@@ -47,6 +53,6 @@ Every pull request runs CI (format, lint, types, unit tests, build, smoke test) 
 
 ## License
 
-The code is MIT-licensed (see [LICENSE](LICENSE)). The content in `content/` and the Résumé PDF are © Rob, all rights reserved. The Satoshi font files in `app/fonts/` belong to Indian Type Foundry and are licensed under the [ITF Free Font License](https://www.fontshare.com/licenses/itf-ffl), not MIT. To use Satoshi yourself, get it from [Fontshare](https://www.fontshare.com/fonts/satoshi).
+The code is MIT-licensed (see [LICENSE](LICENSE)). The content in `content/` and the Résumé PDFs are © Rob, all rights reserved. The Satoshi font files in `app/fonts/` belong to Indian Type Foundry and are licensed under the [ITF Free Font License](https://www.fontshare.com/licenses/itf-ffl), not MIT. To use Satoshi yourself, get it from [Fontshare](https://www.fontshare.com/fonts/satoshi).
 
 The brand marks in the Stack and on Project pills come from [Simple Icons](https://simpleicons.org) (CC0), except Playwright's, which is copied from [Devicon](https://devicon.dev) (MIT, © 2015 konpa). Each mark is a trademark of its owner.
