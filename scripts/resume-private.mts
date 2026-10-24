@@ -6,8 +6,7 @@ import type { Page } from "@playwright/test";
 // ADR 0001 as code: the details only the Résumé PDF shows. They come from .env.local and reach the
 // page only through applyPrivateDetails, which scripts/resume-pdf.mts calls just before printing and
 // the e2e print test calls with stand-in values. The page carries no placeholder: the places filled
-// in are its own h1, its contact list and its title. The list is found by data-contact, not by its
-// label, which changes by Language version.
+// in are its own h1, its contact list and its title.
 
 /** Never hashed into the lock, never logged, never in a thrown message. */
 export type PrivateDetails = {
@@ -37,7 +36,7 @@ export function readPrivateDetails(
   };
 }
 
-/** ("Résumé | Rob", name) → "Résumé | name": the page's own title, so "Résumé" is spelled once. */
+/** ("Curriculum | Rob", name) → "Curriculum | name": the page's own title, so no title is spelled twice. */
 export function pdfTitle(pageTitle: string, fullName: string): string {
   const cut = pageTitle.lastIndexOf(" | ");
   if (cut < 0) throw new Error(`No site name to replace in "${pageTitle}"`);
@@ -45,8 +44,9 @@ export function pdfTitle(pageTitle: string, fullName: string): string {
 }
 
 /**
- * Writes the details into the loaded /resume page. Idempotent. Strict locators, so a page that stops
- * matching (no h1, two h1s, no contact list) throws instead of printing a PDF without them.
+ * Writes the details into the loaded Résumé page of any Language version. Idempotent. Strict
+ * locators, so a page that stops matching (no h1, two h1s, no contact list) throws instead of
+ * printing a PDF without them.
  */
 export async function applyPrivateDetails(
   page: Page,

@@ -100,7 +100,6 @@ test("theme starts dark, switches to light and stays light", async ({
   ).toEqual([{ glyph: "☀", whole: true }]);
 });
 
-/** Glyphs with any painted area: each text box cut by every clipping ancestor up to the button. */
 function visibleGlyphs(button: Locator) {
   return button.evaluate((root) => {
     const shown: { glyph: string; whole: boolean }[] = [];

@@ -62,7 +62,6 @@ const JOB_TITLES: Record<string, string> = {
   it: "Front-end Engineer & Tech Lead",
 };
 
-/** The same page in every Language version, then x-default at the bare domain. */
 function alternatesOf(url: string): string[][] {
   const rest = new URL(url).pathname.replace(/^\/[^/]+/, "");
   return [

@@ -13,16 +13,11 @@ vi.mock("next/navigation", async (importOriginal) => ({
   usePathname: () => "/it",
 }));
 
-// Project bodies are MDX, which Vitest doesn't compile; they're content, not interface.
 vi.mock("@/lib/projects", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../lib/projects")>()),
   loadProjectBody: async () => () => null,
 }));
 
-/**
- * Every interface string the English site shows: a string matches a whole text node or aria-label,
- * a pattern matches inside one. "Open source", "Stack", "Email", "Privacy" and "Repository" are Italian too.
- */
 const ENGLISH: readonly (string | RegExp)[] = [
   "About",
   "Selected Work",
@@ -58,7 +53,6 @@ const ENTITIES: Record<string, string> = {
   "&gt;": ">",
 };
 
-/** The text nodes and aria-labels of rendered markup, trimmed. */
 function strings(html: string): string[] {
   const decode = (text: string) =>
     text.replace(/&(amp|quot|#x27|lt|gt);/g, (entity) => ENTITIES[entity]);

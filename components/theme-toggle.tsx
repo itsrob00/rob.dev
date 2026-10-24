@@ -29,7 +29,6 @@ const GLYPH: Record<Theme, string> = { dark: "☾", light: "☀" };
 
 type Roll = { from: Theme; count: number };
 
-/** `labels`: the button's label, by the theme it switches to. */
 export function ThemeToggle({ labels }: { labels: Record<Theme, string> }) {
   const theme = useSyncExternalStore(subscribe, getTheme, getServerTheme);
   const next: Theme = theme === "dark" ? "light" : "dark";
