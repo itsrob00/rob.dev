@@ -6,7 +6,12 @@ import { RepoPreviewCard } from "@/components/repo-preview";
 import { SharedTitle } from "@/components/route-transition";
 import { StackTags } from "@/components/stack-tags";
 import { formatDateRange } from "@/lib/date-range";
-import { getProject, getProjects, loadProjectBody } from "@/lib/projects";
+import {
+  getProject,
+  getProjects,
+  isOpenable,
+  loadProjectBody,
+} from "@/lib/projects";
 import { pageMetadata, projectCard } from "@/lib/site-metadata";
 import styles from "./page.module.css";
 
@@ -37,7 +42,6 @@ export default async function ProjectPage({
   const project = getProject((await params).slug);
   if (!project) notFound();
   const Body = await loadProjectBody(project);
-  const { repo, live } = project.links;
 
   return (
     <OneColumnPage>
@@ -59,10 +63,16 @@ export default async function ProjectPage({
             </div>
           </dl>
           <StackTags stack={project.stack} />
-          <p className={styles.links}>
-            {repo && <Anchor href={repo}>Repository ↗</Anchor>}
-            {live && <Anchor href={live}>Live site ↗</Anchor>}
-          </p>
+          {isOpenable(project) && (
+            <p className={styles.links}>
+              {project.links.repo && (
+                <Anchor href={project.links.repo}>Repository ↗</Anchor>
+              )}
+              {project.links.live && (
+                <Anchor href={project.links.live}>Live site ↗</Anchor>
+              )}
+            </p>
+          )}
           {project.cover && (
             // Static export has no image optimizer; covers are pre-sized under public/.
             // eslint-disable-next-line @next/next/no-img-element

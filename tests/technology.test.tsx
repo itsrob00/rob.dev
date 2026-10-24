@@ -6,6 +6,7 @@ import {
   siReact,
   siRedux,
   siTailwindcss,
+  siThreedotjs,
   siTypescript,
   siVite,
   siVitest,
@@ -44,6 +45,12 @@ describe("Technology", () => {
     const html = render(name);
     expect(html).toContain(`d="${icon.path}"`);
     expect(html).toContain(`fill="#${icon.hex}"`);
+  });
+
+  test("three.js shows its mark in the text colour, since its brand black would vanish on the dark theme", () => {
+    const html = render("three.js");
+    expect(html).toContain(`d="${siThreedotjs.path}"`);
+    expect(html).toContain('fill="currentColor"');
   });
 
   test("Playwright keeps its several colours", () => {

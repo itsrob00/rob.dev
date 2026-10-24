@@ -83,7 +83,7 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
   await page.goto("/");
 
   const reached: string[] = [];
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 8; i++) {
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus");
     await expect(focused).not.toHaveCSS("outline-style", "none");
@@ -94,8 +94,7 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
 
   expect(reached).toEqual([
     "ABOUT",
-    "STACK",
-    "SELECTED WORK",
+    "WORK",
     "EXPERIENCE",
     "Email",
     "LinkedIn",
@@ -145,9 +144,10 @@ test("section nav marks a section once wheel scrolling brings its heading into t
   await page.mouse.move(width * 0.75, height / 2);
   await page.mouse.wheel(0, distance);
 
-  await expect(
-    nav.getByRole("link", { name: "Selected Work" }),
-  ).toHaveAttribute("aria-current", "location");
+  await expect(nav.getByRole("link", { name: "Work" })).toHaveAttribute(
+    "aria-current",
+    "location",
+  );
 });
 
 test("home sections show About, Experience and Stack from the records", async ({
@@ -182,7 +182,10 @@ test("home sections show About, Experience and Stack from the records", async ({
   // Compact: the tech lists and bullets are the Résumé's.
   await expect(experience.getByText(/Redux Toolkit|Sole owner/)).toHaveCount(0);
   await expect(
-    page.getByRole("region", { name: "Stack" }).getByRole("listitem"),
+    page
+      .getByRole("region", { name: "Work" })
+      .getByRole("list", { name: "Stack" })
+      .getByRole("listitem"),
   ).toHaveText([
     "React",
     "TypeScript",
@@ -195,41 +198,189 @@ test("home sections show About, Experience and Stack from the records", async ({
   ]);
 });
 
-test("Stack tiles and Project pills show brand marks before their names, hidden from assistive tech", async ({
+/** The Work section's card for one Project, found by its title. */
+function workCard(page: Page, title: string) {
+  return page
+    .getByRole("region", { name: "Work" })
+    .getByRole("listitem")
+    .filter({ has: page.getByRole("heading", { level: 3, name: title }) });
+}
+
+/** One technology's toggle in the Work section's Stack list. */
+function stackChip(page: Page, name: string) {
+  return page
+    .getByRole("list", { name: "Stack" })
+    .getByRole("button", { name, exact: true });
+}
+
+test("Stack chips and Project pills show brand marks before their names, hidden from assistive tech", async ({
   page,
 }) => {
   await page.goto("/");
-  const stack = page.getByRole("region", { name: "Stack" });
-  await expect(stack.getByRole("list")).toHaveCSS(
-    "background-color",
-    "rgba(0, 0, 0, 0)",
-  );
+  const stack = page
+    .getByRole("region", { name: "Work" })
+    .getByRole("list", { name: "Stack" });
   const marks = stack.getByRole("listitem").locator("svg");
   await expect(marks).toHaveCount(8);
   for (const mark of await marks.all()) {
     await expect(mark).toHaveAttribute("aria-hidden", "true");
-    expect(await mark.boundingBox()).toMatchObject({ width: 28, height: 28 });
+    const box = await mark.boundingBox();
+    if (!box) throw new Error("mark not rendered");
+    expect([box.width, box.height].map(Math.round)).toEqual([18, 18]);
   }
   await expect(
     stack.getByRole("listitem").filter({ hasText: "React" }).locator("path"),
   ).toHaveCSS("fill", "rgb(97, 218, 251)");
 
-  const cardPills = page
-    .getByRole("region", { name: "Selected Work" })
-    .getByRole("list", { name: "Stack" })
+  const devflowPills = workCard(page, "devflow")
+    .getByRole("list", { name: "Built with" })
     .getByRole("listitem");
-  await expect(cardPills).toHaveText(["Claude Code", "Node.js", "JavaScript"]);
-  for (const mark of await cardPills.locator("svg").all()) {
+  await expect(devflowPills).toHaveText([
+    "Claude Code",
+    "Node.js",
+    "JavaScript",
+  ]);
+  for (const mark of await devflowPills.locator("svg").all()) {
     expect(await mark.boundingBox()).toMatchObject({ width: 13, height: 13 });
   }
+  const exolabPills = workCard(page, "Exolab redesign")
+    .getByRole("list", { name: "Built with" })
+    .getByRole("listitem");
+  await expect(exolabPills).toHaveText([
+    "React",
+    "TypeScript",
+    "Vite",
+    "Tailwind CSS",
+    "three.js",
+    "Vitest",
+  ]);
+  await expect(exolabPills.locator("svg")).toHaveCount(6);
+  // three.js's brand black is drawn in the text colour, so it shows on the dark theme.
+  await expect(
+    exolabPills.filter({ hasText: "three.js" }).locator("path"),
+  ).toHaveCSS("fill", "rgb(74, 222, 128)");
 
   await page.goto("/projects/devflow");
   await expect(
     page
-      .getByRole("list", { name: "Stack" })
+      .getByRole("list", { name: "Built with" })
       .getByRole("listitem")
       .locator("svg"),
   ).toHaveCount(3);
+});
+
+test("Work lists the Projects a visitor can open first, each with its kind and start year", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const work = page.getByRole("region", { name: "Work" });
+  await expect(work.getByRole("heading", { level: 3 })).toHaveText([
+    "devflow",
+    "Exolab redesign",
+  ]);
+  await expect(workCard(page, "devflow")).toContainText("Open source · 2026");
+  await expect(workCard(page, "Exolab redesign")).toContainText(
+    "Concept · 2026",
+  );
+});
+
+test("pressing a Stack chip dims the Projects that don't use it, until it's pressed again or Esc", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const react = stackChip(page, "React");
+  const devflow = workCard(page, "devflow");
+  const exolab = workCard(page, "Exolab redesign");
+  await expect(react).toHaveAttribute("aria-pressed", "false");
+
+  await react.click();
+  await page.mouse.move(0, 0);
+  await expect(react).toHaveAttribute("aria-pressed", "true");
+  await expect(devflow).toHaveAttribute("data-dimmed");
+  await expect(exolab).not.toHaveAttribute("data-dimmed");
+  await expect.poll(() => paintedOpacity(devflow)).toBeLessThan(1);
+  // Dimmed, not hidden: its link is still there for the keyboard, and focus brings it back to full.
+  await devflow.getByRole("link", { name: "devflow" }).focus();
+  await expect(devflow.getByRole("link", { name: "devflow" })).toBeFocused();
+  await expect.poll(() => paintedOpacity(devflow)).toBe(1);
+
+  // The pointer stays on the chip: the second press clears at once.
+  await react.click();
+  await expect(react).toHaveAttribute("aria-pressed", "false");
+  await expect(devflow).not.toHaveAttribute("data-dimmed");
+
+  await stackChip(page, "Claude Code").click();
+  await page.mouse.move(0, 0);
+  await expect(exolab).toHaveAttribute("data-dimmed");
+  await page.keyboard.press("Escape");
+  await expect(exolab).not.toHaveAttribute("data-dimmed");
+  await expect(stackChip(page, "Claude Code")).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+});
+
+test("pointing at a Project, with the mouse or the keyboard, dims the chips it doesn't use", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const devflow = workCard(page, "devflow");
+
+  await devflow.hover();
+  await expect(stackChip(page, "React")).toHaveAttribute("data-dimmed");
+  await expect(stackChip(page, "Claude Code")).not.toHaveAttribute(
+    "data-dimmed",
+  );
+
+  await page.mouse.move(0, 0);
+  await expect(stackChip(page, "React")).not.toHaveAttribute("data-dimmed");
+
+  await devflow.getByRole("link", { name: "devflow" }).focus();
+  await expect(stackChip(page, "React")).toHaveAttribute("data-dimmed");
+  await devflow.getByRole("link", { name: "devflow" }).blur();
+  await expect(stackChip(page, "React")).not.toHaveAttribute("data-dimmed");
+});
+
+test.describe("on a touch screen", () => {
+  test.use({ hasTouch: true });
+
+  test("tapping a Stack chip pins its highlight", async ({ page }) => {
+    await page.goto("/");
+    await stackChip(page, "React").tap();
+    await expect(stackChip(page, "React")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(workCard(page, "devflow")).toHaveAttribute("data-dimmed");
+  });
+});
+
+test("Exolab's page says it's an unofficial concept, with nothing to open yet", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+  await page.goto("/");
+  await workCard(page, "Exolab redesign")
+    .getByRole("link", { name: "Exolab redesign" })
+    .click();
+
+  await expect(page).toHaveURL(/\/projects\/exolab-redesign$/);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Exolab redesign" }),
+  ).toBeVisible();
+  await expect(page.getByText("Concept · 2026")).toBeVisible();
+  await expect(page.getByText("Designer & developer")).toBeVisible();
+  await expect(
+    page.getByText(
+      "An unofficial concept, not affiliated with or endorsed by Exolab S.r.l.",
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Repository|Live site/ }),
+  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /on GitHub$/ })).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
+  expect(errors).toEqual([]);
 });
 
 test("a missing page shows a 404 in the site's look, with a way home", async ({
@@ -266,8 +417,7 @@ test("the Privacy notice is a note at the foot of the home page, outside the sec
   const main = page.getByRole("main");
   await expect(main.getByRole("heading", { level: 2 })).toHaveText([
     "About",
-    "Stack",
-    "Selected Work",
+    "Work",
     "Experience",
   ]);
   const notice = page.locator("#privacy");
@@ -321,9 +471,9 @@ function homeContent(page: Page) {
   return [
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
     page.getByRole("heading", { level: 2, name: "About" }),
-    page.getByRole("heading", { level: 2, name: "Stack" }),
-    page.getByRole("region", { name: "Stack" }).getByRole("listitem").last(),
-    page.getByRole("heading", { level: 3, name: "devflow" }),
+    page.getByRole("heading", { level: 2, name: "Work" }),
+    page.getByRole("list", { name: "Stack" }).getByRole("listitem").last(),
+    page.getByRole("heading", { level: 3, name: "Exolab redesign" }),
     page.getByRole("heading", { level: 2, name: "Experience" }),
     page.locator("#privacy"),
   ];
@@ -334,7 +484,10 @@ test("every home section is visible once scrolled into view", async ({
 }) => {
   await page.goto("/");
   for (const content of homeContent(page)) {
-    await content.scrollIntoViewIfNeeded();
+    // To the middle: content peeking into the window's bottom edge hasn't risen yet, by design.
+    await content.evaluate((element) =>
+      element.scrollIntoView({ block: "center" }),
+    );
     await expect.poll(() => paintedOpacity(content)).toBe(1);
   }
 });
@@ -365,13 +518,13 @@ test.describe("with JavaScript off", () => {
   });
 });
 
-test("a Selected Work card opens its Project page, which links back home", async ({
+test("a Work card opens its Project page, which links back home", async ({
   page,
 }) => {
   const errors = trackErrors(page);
 
   await page.goto("/");
-  const work = page.getByRole("region", { name: "Selected Work" });
+  const work = page.getByRole("region", { name: "Work" });
   await expect(work.getByText("Open source · 2026")).toBeVisible();
   // The whole card is the link: a real click on the summary text lands on the link's overlay.
   const summaryText = work.getByText(
@@ -449,7 +602,12 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
   expect(errors).toEqual([]);
 });
 
-for (const route of ["/", "/resume", "/projects/devflow"]) {
+for (const route of [
+  "/",
+  "/resume",
+  "/projects/devflow",
+  "/projects/exolab-redesign",
+]) {
   test(`${route} asks no other origin for anything`, async ({
     page,
     baseURL,
@@ -543,6 +701,8 @@ test("the Résumé link opens the Résumé, built from the records, which links 
   await expect(
     main.getByRole("heading", { level: 3, name: /^devflow/ }),
   ).toBeVisible();
+  // Only Projects a reader can open: Exolab isn't public yet.
+  await expect(main.getByText(/Exolab redesign/)).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Skills" }).getByRole("listitem"),
   ).toHaveText([
