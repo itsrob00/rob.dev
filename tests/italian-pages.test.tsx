@@ -20,7 +20,8 @@ vi.mock("@/lib/projects", async (importOriginal) => ({
 
 const ENGLISH: readonly (string | RegExp)[] = [
   "About",
-  "Selected Work",
+  "Work",
+  "Built with",
   "Experience",
   "Sections",
   "Language",

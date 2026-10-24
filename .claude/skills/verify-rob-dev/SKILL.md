@@ -45,7 +45,7 @@ One call is one visitor: a fresh Chromium context at the given viewport, the the
 
 It fails loud (exit 1, after writing the evidence) when the page scrolls sideways, when the rendered `<html data-theme>` isn't the requested theme, or when the console logs an error. The known Next 16.4 static-export prefetch 404s (`__next.<seg>.__PAGE__.txt`) are ignored, and the Vercel Analytics and Speed Insights scripts (`/_vercel/**/script.js`, which only Vercel serves) are answered with an empty script, both as the e2e suite does.
 
-Stable handles: routes home (no argument), `projects/devflow`, `resume`, any unknown path for the 404; home section ids `about`, `stack`, `work`, `experience`; the `Sections` nav; the theme toggle's accessible name `Switch to light theme` / `Switch to dark theme`. Phone width is `--width 375 --height 812`; the layout collapses to one column at 860px.
+Stable handles: routes home (no argument), `projects/devflow`, `projects/exolab-redesign`, `resume`, any unknown path for the 404; home section ids `about`, `work`, `experience`; the `Sections` nav; the theme toggle's accessible name `Switch to light theme` / `Switch to dark theme`. Phone width is `--width 375 --height 812`; the layout collapses to one column at 860px.
 
 For an interaction the helper doesn't cover (clicking the nav, toggling the theme, downloading the PDF), write a short Playwright script that reads the URL from `.verify/state.json`, uses role-based locators like `e2e/smoke.spec.ts` does, and saves its own screenshot under `.verify/evidence/<run>/`. Check `e2e/smoke.spec.ts` first: most user paths already have a test there, and `npx playwright test -g "<name>"` against a fresh build is valid proof too.
 

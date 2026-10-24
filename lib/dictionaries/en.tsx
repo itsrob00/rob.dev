@@ -3,13 +3,13 @@ import type { Dictionary } from ".";
 export const en: Dictionary = {
   sections: {
     about: "About",
-    stack: "Stack",
-    work: "Selected Work",
+    work: "Work",
     experience: "Experience",
   },
   sectionNav: "Sections",
   languageMenu: "Language",
-  stackTags: "Stack",
+  stack: "Stack",
+  builtWith: "Built with",
   email: "Email",
   resume: "Résumé",
   back: "← Rob",
@@ -42,7 +42,7 @@ export const en: Dictionary = {
     inProgress: "In progress",
   },
   project: {
-    kicker: (year) => `Open source · ${year}`,
+    kinds: { "Open source": "Open source", Concept: "Concept" },
     role: "Role",
     when: "When",
     repository: "Repository ↗",

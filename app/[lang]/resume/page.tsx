@@ -8,7 +8,7 @@ import { resume as resumeRecords } from "@/content/resume";
 import { formatDateRange } from "@/lib/date-range";
 import { dictionary, type Dictionary } from "@/lib/dictionaries";
 import { languageVersion } from "@/lib/language-versions";
-import { getProjects } from "@/lib/projects";
+import { getProjects, isOpenable } from "@/lib/projects";
 import {
   contactItems,
   displayUrl,
@@ -124,28 +124,31 @@ export default async function ResumePage({
 
         <Section id="projects" title={headings.projects}>
           <ol className={styles.entries}>
-            {getProjects(code).map((project) => (
-              <li key={project.slug}>
-                <Entry
-                  title={project.title}
-                  detail={project.role}
-                  when={formatDateRange(project, "month", code)}
-                />
-                <p className={styles.text}>{project.summary}</p>
-                <p className={styles.meta}>
-                  {project.stack.join(" · ")}
-                  {[project.links.repo, project.links.live].map(
-                    (href) =>
-                      href && (
-                        <span key={href}>
-                          {" · "}
-                          <Anchor href={href}>{displayUrl(href)}</Anchor>
-                        </span>
-                      ),
-                  )}
-                </p>
-              </li>
-            ))}
+            {/* Only what a reader can open: one that isn't public yet waits on the site. */}
+            {getProjects(code)
+              .filter(isOpenable)
+              .map((project) => (
+                <li key={project.slug}>
+                  <Entry
+                    title={project.title}
+                    detail={project.role}
+                    when={formatDateRange(project, "month", code)}
+                  />
+                  <p className={styles.text}>{project.summary}</p>
+                  <p className={styles.meta}>
+                    {project.stack.join(" · ")}
+                    {[project.links.repo, project.links.live].map(
+                      (href) =>
+                        href && (
+                          <span key={href}>
+                            {" · "}
+                            <Anchor href={href}>{displayUrl(href)}</Anchor>
+                          </span>
+                        ),
+                    )}
+                  </p>
+                </li>
+              ))}
           </ol>
         </Section>
 

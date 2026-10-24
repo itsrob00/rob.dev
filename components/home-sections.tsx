@@ -2,15 +2,16 @@ import { experience } from "@/content/experience";
 import { profileCopy } from "@/content/profile";
 import { stack } from "@/content/stack";
 import { formatDateRange } from "@/lib/date-range";
+import { dictionary } from "@/lib/dictionaries";
 import { pathIn, type LanguageCode } from "@/lib/language-versions";
 import { getProjects, projectKicker } from "@/lib/projects";
-import { FadeUp, LiftItem } from "./motion";
 import { NavLink, SharedTitle } from "./route-transition";
 import { StackTags } from "./stack-tags";
 import { Technology } from "./technology";
+import { StackChip, WorkCard, WorkHighlight } from "./work-highlight";
 import styles from "./home-sections.module.css";
 
-// The bodies of the home page's sections. app/page.tsx wraps each in its <section> and <h2>.
+// The bodies of the home page's sections. app/[lang]/page.tsx wraps each in its <section> and <h2>.
 
 export function About({ lang }: { lang: LanguageCode }) {
   return profileCopy[lang].about.map((paragraph) => (
@@ -20,29 +21,46 @@ export function About({ lang }: { lang: LanguageCode }) {
   ));
 }
 
-// The title's link stretches over the whole card: one tab stop, named by the title.
-export function SelectedWork({ lang }: { lang: LanguageCode }) {
+// The Stack as chips above every Project's card, lighting each other (components/work-highlight.tsx).
+// A card's title link stretches over the whole card: one tab stop, named by the title.
+export function Work({ lang }: { lang: LanguageCode }) {
   return (
-    <ul className={styles.work}>
-      {getProjects(lang).map((project) => (
-        <LiftItem key={project.slug} className={styles.card}>
-          <p className={styles.kicker}>{projectKicker(project, lang)}</p>
-          <h3 className={styles.cardTitle}>
-            <SharedTitle slug={project.slug}>
-              <NavLink
-                href={pathIn(lang, project.href)}
-                direction="forward"
-                className={styles.cardLink}
-              >
-                {project.title}
-              </NavLink>
-            </SharedTitle>
-          </h3>
-          <p className={styles.summary}>{project.summary}</p>
-          <StackTags lang={lang} stack={project.stack} />
-        </LiftItem>
-      ))}
-    </ul>
+    <WorkHighlight>
+      <ul className={styles.strip} aria-label={dictionary[lang].stack}>
+        {stack.map((name) => (
+          <li key={name}>
+            <StackChip name={name} className={styles.chip}>
+              <Technology name={name} markSize={18} />
+            </StackChip>
+          </li>
+        ))}
+      </ul>
+      <ul className={styles.work}>
+        {getProjects(lang).map((project) => (
+          <WorkCard
+            key={project.slug}
+            slug={project.slug}
+            stack={project.stack}
+            className={styles.card}
+          >
+            <p className={styles.kicker}>{projectKicker(project, lang)}</p>
+            <h3 className={styles.cardTitle}>
+              <SharedTitle slug={project.slug}>
+                <NavLink
+                  href={pathIn(lang, project.href)}
+                  direction="forward"
+                  className={styles.cardLink}
+                >
+                  {project.title}
+                </NavLink>
+              </SharedTitle>
+            </h3>
+            <p className={styles.summary}>{project.summary}</p>
+            <StackTags lang={lang} stack={project.stack} />
+          </WorkCard>
+        ))}
+      </ul>
+    </WorkHighlight>
   );
 }
 
@@ -77,17 +95,5 @@ export function ExperienceList({ lang }: { lang: LanguageCode }) {
         </li>
       ))}
     </ol>
-  );
-}
-
-export function StackList() {
-  return (
-    <FadeUp as="ul" inView stagger className={styles.stack}>
-      {stack.map((item) => (
-        <li key={item} className={styles.tile}>
-          <Technology name={item} markSize={28} />
-        </li>
-      ))}
-    </FadeUp>
   );
 }

@@ -18,17 +18,38 @@ export type Project = DateRange & {
   slug: string;
   /** Derived from slug: the one place a Project URL is spelled. */
   href: `/projects/${string}`;
+  kind: ProjectKind;
   title: string;
   /** One line: card text, page lead and meta description. */
   summary: string;
   role: string;
   stack: readonly string[];
-  links: { repo?: string; live?: string };
+  /** None until the Project is public (GLOSSARY): isOpenable tells the two apart. */
+  links: OpenLinks | NoLinks;
   /** Project page only. A path under public/. */
   cover?: { src: string; alt: string };
 };
 
-/** Every Project in `lang`, newest first by start (ties by slug, so file names never decide the order). */
+type OpenLinks =
+  { repo: string; live?: string } | { repo?: string; live: string };
+
+type NoLinks = { repo?: undefined; live?: undefined };
+
+export type OpenableProject = Project & { links: OpenLinks };
+
+export type ProjectKind = (typeof PROJECT_KINDS)[number];
+
+const PROJECT_KINDS = ["Open source", "Concept"] as const;
+
+/** Whether a visitor can open the Project: it has a repo or a live link. */
+export function isOpenable(project: Project): project is OpenableProject {
+  return project.links.repo !== undefined || project.links.live !== undefined;
+}
+
+/**
+ * Every Project in `lang`: the ones a visitor can open first, then newest first by start within each
+ * group (ties by slug, so file names never decide the order).
+ */
 export function getProjects(lang: LanguageCode): Project[] {
   return readFolder(lang).map((entry) => entry.project);
 }
@@ -41,13 +62,12 @@ export function getProject(
   return getProjects(lang).find((project) => project.slug === slug);
 }
 
-/** "Open source · 2026" (start year), the label on the card, the page header and the share image. */
+/** "Concept · 2026" (kind and start year), the label on the card, the page header and the share image. */
 export function projectKicker(
-  project: Pick<Project, "start">,
+  project: Pick<Project, "kind" | "start">,
   lang: LanguageCode,
 ): string {
-  // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
-  return dictionary[lang].project.kicker(project.start.slice(0, 4));
+  return `${dictionary[lang].project.kinds[project.kind]} · ${project.start.slice(0, 4)}`;
 }
 
 // Relative to process.cwd(). loadProjectBody's import spells it again: a bundler import needs a literal.
@@ -80,14 +100,16 @@ const frontmatterSchema = z
       "keep it to one line",
     ),
     role: nonEmptyText,
+    kind: z.enum(PROJECT_KINDS),
     ...dates.shape,
     stack: z.array(nonEmptyText).min(1),
     links: z
       .strictObject({ repo: httpsUrl.optional(), live: httpsUrl.optional() })
       .refine(
         (links) => links.repo !== undefined || links.live !== undefined,
-        "add a repo or a live link",
-      ),
+        "add a repo or a live link, or leave links out",
+      )
+      .optional(),
     cover: z
       .strictObject({ src: z.string().startsWith("/"), alt: nonEmptyText })
       .optional(),
@@ -143,6 +165,7 @@ function readFolder(lang: LanguageCode): Entry[] {
     .get(lang)!
     .sort(
       (a, b) =>
+        Number(isOpenable(b.project)) - Number(isOpenable(a.project)) ||
         b.project.start.localeCompare(a.project.start) ||
         a.project.slug.localeCompare(b.project.slug),
     );
@@ -170,11 +193,12 @@ function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
       }
       continue;
     }
-    const frontmatter = parsed.data;
+    const { links, ...frontmatter } = parsed.data;
     entries.push({
       name: path.basename(file, ".mdx"),
       project: {
         ...frontmatter,
+        links: toLinks(links),
         href: `/projects/${frontmatter.slug}`,
       },
     });
@@ -188,6 +212,12 @@ function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
     }
   }
   return entries;
+}
+
+function toLinks(links?: { repo?: string; live?: string }): Project["links"] {
+  if (links?.repo !== undefined) return { ...links, repo: links.repo };
+  if (links?.live !== undefined) return { ...links, live: links.live };
+  return {};
 }
 
 /** The compiled MDX body of a Project in `lang`. Takes a Project, so only validated files reach the import. */

@@ -13,6 +13,8 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type FocusEventHandler,
+  type PointerEventHandler,
   type ReactNode,
 } from "react";
 import styles from "./motion.module.css";
@@ -61,12 +63,12 @@ export function FadeUp({
   children: ReactNode;
   inView?: boolean;
   stagger?: boolean;
-  /** "header" and "ul" let the Identity column and the Stack list be their own stagger containers. */
-  as?: "div" | "header" | "ul";
+  /** "header" lets the Identity column be its own stagger container. */
+  as?: "div" | "header";
   className?: string;
 }) {
-  // Typed as every tag at once so it fits each one's ref; only HTMLElement members are used.
-  const [scope, animate] = useAnimate<HTMLDivElement & HTMLUListElement>();
+  // Typed as a div, whose ref a header's accepts too; only HTMLElement members are used.
+  const [scope, animate] = useAnimate<HTMLDivElement>();
   const [phase, setPhase] = useState<Phase>("pending");
   const arrival = useRef<Promise<void>>(null);
   const seen = useInView(scope, { once: true, margin: "0px 0px -10% 0px" });
@@ -151,21 +153,28 @@ function routeArrival(): Promise<void> {
 }
 
 /**
- * A list item (a Selected Work card) that rises 4px while hovered. Under reduced motion it doesn't move at all.
+ * A list item (a Work card) that rises 4px while hovered. Under reduced motion it doesn't move at all.
  * The glow (border, shadow) is the caller's CSS, under its own reduced-motion guard: it isn't a
  * transform. The caller's CSS must not also set or transition `transform` on it.
  */
 export function LiftItem({
   className,
   children,
+  ...highlight
 }: {
   className?: string;
   children: ReactNode;
+  "data-dimmed"?: true;
+  onPointerEnter?: PointerEventHandler<HTMLLIElement>;
+  onPointerLeave?: PointerEventHandler<HTMLLIElement>;
+  onFocus?: FocusEventHandler<HTMLLIElement>;
+  onBlur?: FocusEventHandler<HTMLLIElement>;
 }) {
   // whileHover renders nothing on the server, so this can't mismatch the prerendered HTML.
   const reduce = useReducedMotion();
   return (
     <motion.li
+      {...highlight}
       className={className}
       whileHover={reduce ? undefined : { y: -4 }}
       transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}

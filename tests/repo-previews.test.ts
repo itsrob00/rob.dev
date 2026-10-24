@@ -85,6 +85,11 @@ describe("getRepoPreview", () => {
     ).toBeUndefined();
   });
 
+  test("returns undefined for a Project that isn't public yet", () => {
+    useRoot({});
+    expect(getRepoPreview({ slug: "tool", links: {} })).toBeUndefined();
+  });
+
   test("fails for a repo link with no snapshot, naming the Project, the link and the command to run", () => {
     useRoot(TOOL);
     expect(() =>

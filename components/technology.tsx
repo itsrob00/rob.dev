@@ -6,6 +6,7 @@ import {
   siReact,
   siRedux,
   siTailwindcss,
+  siThreedotjs,
   siTypescript,
   siVite,
   siVitest,
@@ -43,7 +44,7 @@ export function Technology({
 
 type StackItem = (typeof stack)[number];
 
-type Path = { d: string; fill: `#${string}` };
+type Path = { d: string; fill: `#${string}` | "currentColor" };
 
 type Mark = { box: number; paths: readonly [Path, ...Path[]] };
 
@@ -58,14 +59,19 @@ const MARKS = {
   "Claude Code": simpleIcon(siClaude),
   "Node.js": simpleIcon(siNodedotjs),
   JavaScript: simpleIcon(siJavascript),
+  // Its brand colour is black, which would vanish on the dark theme.
+  "three.js": simpleIcon(siThreedotjs, "currentColor"),
 } satisfies { readonly [Item in StackItem]: Mark } & {
   readonly [name: string]: Mark;
 };
 
 const MARKS_BY_NAME: ReadonlyMap<string, Mark> = new Map(Object.entries(MARKS));
 
-function simpleIcon(icon: SimpleIcon): Mark {
-  return { box: 24, paths: [{ d: icon.path, fill: `#${icon.hex}` }] };
+function simpleIcon(
+  icon: SimpleIcon,
+  fill: Path["fill"] = `#${icon.hex}`,
+): Mark {
+  return { box: 24, paths: [{ d: icon.path, fill }] };
 }
 
 function playwrightMark(): Mark {

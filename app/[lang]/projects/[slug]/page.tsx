@@ -11,6 +11,7 @@ import { languageVersion } from "@/lib/language-versions";
 import {
   getProject,
   getProjects,
+  isOpenable,
   loadProjectBody,
   projectKicker,
 } from "@/lib/projects";
@@ -51,7 +52,6 @@ export default async function ProjectPage({
   const project = getProject(slug, code);
   if (!project) notFound();
   const Body = await loadProjectBody(project, code);
-  const { repo, live } = project.links;
   const t = dictionary[code].project;
 
   return (
@@ -74,10 +74,16 @@ export default async function ProjectPage({
             </div>
           </dl>
           <StackTags lang={code} stack={project.stack} />
-          <p className={styles.links}>
-            {repo && <Anchor href={repo}>{t.repository}</Anchor>}
-            {live && <Anchor href={live}>{t.live}</Anchor>}
-          </p>
+          {isOpenable(project) && (
+            <p className={styles.links}>
+              {project.links.repo && (
+                <Anchor href={project.links.repo}>{t.repository}</Anchor>
+              )}
+              {project.links.live && (
+                <Anchor href={project.links.live}>{t.live}</Anchor>
+              )}
+            </p>
+          )}
           {project.cover && (
             // Static export has no image optimizer; covers are pre-sized under public/.
             // eslint-disable-next-line @next/next/no-img-element

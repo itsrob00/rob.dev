@@ -1,4 +1,4 @@
-/** The technologies Rob works with: the home Stack section. The Résumé shows Skills instead. */
+/** The technologies Rob works with: the chips atop the home Work section. The Résumé shows Skills instead. */
 export const stack = [
   "React",
   "TypeScript",

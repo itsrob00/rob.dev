@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import {
-  About,
-  ExperienceList,
-  SelectedWork,
-  StackList,
-} from "@/components/home-sections";
+import { About, ExperienceList, Work } from "@/components/home-sections";
 import { IdentityColumn } from "@/components/identity-column";
 import { FadeUp } from "@/components/motion";
 import { PrivacyNotice } from "@/components/privacy-notice";
@@ -39,8 +34,7 @@ type HomeSection = {
 // The one list of home sections: <main> renders it in order and the nav lists each one.
 const sections = [
   { id: "about", Body: About },
-  { id: "stack", Body: StackList },
-  { id: "work", Body: SelectedWork },
+  { id: "work", Body: Work },
   { id: "experience", Body: ExperienceList },
 ] satisfies readonly HomeSection[];
 

@@ -1,6 +1,11 @@
 import path from "node:path";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import { getProject, getProjects, projectKicker } from "../lib/projects";
+import {
+  getProject,
+  getProjects,
+  isOpenable,
+  projectKicker,
+} from "../lib/projects";
 
 // Each fixture is a miniature repo root holding content/projects/<language>/*.mdx, so the tests call
 // the same functions the pages do, pointed at the fixture through process.cwd().
@@ -32,12 +37,33 @@ describe("getProjects", () => {
       "Il più vecchio",
     ]);
   });
+
+  test("lists the Projects a visitor can open before newer ones that aren't public yet", () => {
+    useFixture("openable-first");
+    expect(getProjects("en").map((project) => project.slug)).toEqual([
+      "public-older",
+      "not-public-newer",
+    ]);
+  });
+});
+
+describe("isOpenable", () => {
+  test("a Project with a repo or live link can be opened; one without links can't", () => {
+    useFixture("openable-first");
+    const [publicOlder, notPublic] = getProjects("en");
+    expect(isOpenable(publicOlder)).toBe(true);
+    expect(isOpenable(notPublic)).toBe(false);
+    expect(notPublic.links).toEqual({});
+  });
 });
 
 describe("projectKicker", () => {
-  test("labels a Project open source, with its start year", () => {
-    expect(projectKicker({ start: "2025-06" }, "en")).toBe(
+  test("labels a Project with its kind and start year, in the Language version asked for", () => {
+    expect(projectKicker({ kind: "Open source", start: "2025-06" }, "en")).toBe(
       "Open source · 2025",
+    );
+    expect(projectKicker({ kind: "Concept", start: "2026-10" }, "en")).toBe(
+      "Concept · 2026",
     );
   });
 });
@@ -48,6 +74,7 @@ describe("getProject", () => {
     expect(getProject("middle", "en")).toEqual({
       slug: "middle",
       href: "/projects/middle",
+      kind: "Concept",
       title: "Middle",
       summary: "Started in between.",
       role: "Maintainer",
@@ -82,10 +109,10 @@ describe("invalid Projects fail the build", () => {
     expect(() => getProjects("en")).toThrow(/no-title\.mdx.*title/);
   });
 
-  test("rejects a Project with neither a repo nor a live link", () => {
+  test("rejects an empty links block, which is a typo for either a link or no links", () => {
     useFixture("no-link");
     expect(() => getProjects("en")).toThrow(
-      /no-link\.mdx: links: add a repo or a live link/,
+      /no-link\.mdx: links: add a repo or a live link, or leave links out/,
     );
   });
 

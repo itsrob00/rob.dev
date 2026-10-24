@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { LanguageCode } from "../language-versions";
+import type { ProjectKind } from "../projects";
 import type { Theme } from "../theme";
 import { en } from "./en";
 import { it } from "./it";
@@ -20,10 +21,11 @@ type Months = readonly [
 ];
 
 export type Dictionary = {
-  sections: { about: string; stack: string; work: string; experience: string };
+  sections: { about: string; work: string; experience: string };
   sectionNav: string;
   languageMenu: string;
-  stackTags: string;
+  stack: string;
+  builtWith: string;
   email: string;
   resume: string;
   back: string;
@@ -37,7 +39,7 @@ export type Dictionary = {
     inProgress: string;
   };
   project: {
-    kicker: (year: string) => string;
+    kinds: Record<ProjectKind, string>;
     role: string;
     when: string;
     repository: string;
