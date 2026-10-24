@@ -25,7 +25,7 @@ export default async function Image({
 }) {
   const { lang, slug } = await params;
   const { code } = languageVersion(lang);
-  const project = getProject(code, slug);
+  const project = getProject(slug, code);
   if (!project) throw new Error("No such Project");
   return renderShareCard(projectCard(project, code));
 }

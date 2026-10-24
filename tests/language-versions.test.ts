@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
   DEFAULT_LANGUAGE_VERSION,
-  LANGUAGE_VERSIONS,
   alternatesFor,
   languageMenu,
   languageVersion,
@@ -58,13 +57,8 @@ describe("pathIn", () => {
 });
 
 describe("languageMenu", () => {
-  const bothPublished = LANGUAGE_VERSIONS.map((version) => ({
-    ...version,
-    published: true,
-  }));
-
   test("lists each published Language version by native name, linking to the same page, with the current one marked", () => {
-    expect(languageMenu("/en/resume", "", bothPublished)).toEqual([
+    expect(languageMenu("/en/resume", "")).toEqual([
       { code: "en", name: "English", href: "/en/resume", current: true },
       { code: "it", name: "Italiano", href: "/it/resume", current: false },
     ]);
@@ -79,34 +73,15 @@ describe("languageMenu", () => {
       ["/en/projects/devflow#problem", "/it/projects/devflow#problem"],
     ],
   ])("keeps the path and hash of %s%s", (pathname, hash, hrefs) => {
-    expect(
-      languageMenu(pathname, hash, bothPublished).map((entry) => entry.href),
-    ).toEqual(hrefs);
+    expect(languageMenu(pathname, hash).map((entry) => entry.href)).toEqual(
+      hrefs,
+    );
   });
 
   test("marks the Language version the page is in", () => {
     expect(
-      languageMenu("/it/projects/devflow", "", bothPublished).map(
-        (entry) => entry.current,
-      ),
+      languageMenu("/it/projects/devflow", "").map((entry) => entry.current),
     ).toEqual([false, true]);
-  });
-
-  test("lists English and Italiano on the live site", () => {
-    expect(languageMenu("/it", "#about")).toEqual([
-      { code: "en", name: "English", href: "/en#about", current: false },
-      { code: "it", name: "Italiano", href: "/it#about", current: true },
-    ]);
-  });
-
-  test("leaves out unpublished Language versions", () => {
-    const englishOnly = LANGUAGE_VERSIONS.map((version) => ({
-      ...version,
-      published: version.code === "en",
-    }));
-    expect(languageMenu("/en", "#about", englishOnly)).toEqual([
-      { code: "en", name: "English", href: "/en#about", current: true },
-    ]);
   });
 });
 

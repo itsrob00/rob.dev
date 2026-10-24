@@ -31,7 +31,7 @@ export async function generateMetadata({
 }: PageProps<"/[lang]/projects/[slug]">): Promise<Metadata> {
   const { lang, slug } = await params;
   const version = languageVersion(lang);
-  const project = getProject(version.code, slug);
+  const project = getProject(slug, version.code);
   return project
     ? pageMetadata({
         version,
@@ -48,9 +48,9 @@ export default async function ProjectPage({
 }: PageProps<"/[lang]/projects/[slug]">) {
   const { lang, slug } = await params;
   const { code } = languageVersion(lang);
-  const project = getProject(code, slug);
+  const project = getProject(slug, code);
   if (!project) notFound();
-  const Body = await loadProjectBody(code, project);
+  const Body = await loadProjectBody(project, code);
   const { repo, live } = project.links;
   const t = dictionary(code).project;
 

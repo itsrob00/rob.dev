@@ -45,7 +45,7 @@ describe("projectKicker", () => {
 describe("getProject", () => {
   test("finds a Project by its slug, with fields from its frontmatter", () => {
     useFixture("valid");
-    expect(getProject("en", "middle")).toEqual({
+    expect(getProject("middle", "en")).toEqual({
       slug: "middle",
       href: "/projects/middle",
       title: "Middle",
@@ -62,7 +62,7 @@ describe("getProject", () => {
 
   test("finds the same slug in another Language version, with that file's copy", () => {
     useFixture("valid");
-    expect(getProject("it", "middle")).toMatchObject({
+    expect(getProject("middle", "it")).toMatchObject({
       slug: "middle",
       href: "/projects/middle",
       title: "Nel mezzo",
@@ -72,7 +72,7 @@ describe("getProject", () => {
 
   test("returns undefined for a slug no Project has", () => {
     useFixture("valid");
-    expect(getProject("en", "missing")).toBeUndefined();
+    expect(getProject("missing", "en")).toBeUndefined();
   });
 });
 

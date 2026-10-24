@@ -1,7 +1,4 @@
-import {
-  languageVersion,
-  publishedLanguageVersions,
-} from "@/lib/language-versions";
+import { languageParams, languageVersion } from "@/lib/language-versions";
 import { homeCard } from "@/lib/site-metadata";
 import { renderShareCard } from "@/lib/share-images";
 
@@ -10,7 +7,7 @@ export const dynamic = "force-static";
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return publishedLanguageVersions().map(({ code }) => ({ lang: code }));
+  return languageParams();
 }
 
 export default async function Image({

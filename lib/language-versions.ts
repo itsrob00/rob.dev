@@ -13,13 +13,7 @@ const LIST = [
     pdfSuffix: "IT",
     published: true,
   },
-] as const satisfies readonly {
-  code: string;
-  name: string;
-  ogLocale: string;
-  pdfSuffix: string;
-  published: boolean;
-}[];
+] as const;
 
 export type LanguageCode = (typeof LIST)[number]["code"];
 
@@ -39,6 +33,10 @@ export type SitePath = "/" | `/${string}`;
 
 export function publishedLanguageVersions(): LanguageVersion[] {
   return LANGUAGE_VERSIONS.filter((version) => version.published);
+}
+
+export function languageParams(): { lang: LanguageCode }[] {
+  return publishedLanguageVersions().map(({ code }) => ({ lang: code }));
 }
 
 export function languageVersion(code: string): LanguageVersion {
@@ -61,18 +59,15 @@ export type LanguageMenuEntry = {
 export function languageMenu(
   pathname: string,
   hash: string,
-  versions: readonly LanguageVersion[] = publishedLanguageVersions(),
 ): LanguageMenuEntry[] {
   const [, current, ...rest] = pathname.split("/");
   const path: SitePath = `/${rest.join("/")}${hash}`;
-  return versions
-    .filter((version) => version.published)
-    .map(({ code, name }) => ({
-      code,
-      name,
-      href: pathIn(code, path),
-      current: code === current,
-    }));
+  return publishedLanguageVersions().map(({ code, name }) => ({
+    code,
+    name,
+    href: pathIn(code, path),
+    current: code === current,
+  }));
 }
 
 export function alternatesFor(path: SitePath): Record<string, SitePath> {

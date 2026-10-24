@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { jetbrainsMono, satoshi } from "../fonts";
-import {
-  languageVersion,
-  publishedLanguageVersions,
-} from "@/lib/language-versions";
+import { languageParams, languageVersion } from "@/lib/language-versions";
 import { rootMetadata } from "@/lib/site-metadata";
 import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import "../globals.css";
@@ -19,7 +16,7 @@ export async function generateMetadata({
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return publishedLanguageVersions().map(({ code }) => ({ lang: code }));
+  return languageParams();
 }
 
 export default async function RootLayout({

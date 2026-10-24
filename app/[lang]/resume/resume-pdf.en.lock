@@ -1,6 +1,6 @@
 # Written by `npm run resume:pdf`. The build fails when a line stops matching: run it again.
 # sha256 of each Résumé input (text with LF endings; Project MDX: frontmatter only), then of the PDF.
-548743ae7e7db88180220ea59d38cb7969c89071fe32d3b599256dd78cf16400  app/[lang]/layout.tsx
+595950c52847b3f28410ab16222e04176ebd45b0cb8670f3597db23fc4a455c7  app/[lang]/layout.tsx
 fb875fec15b53562553503dc57f2d00308767687594a7f6118f25bf9d250f3b6  app/[lang]/resume/page.module.css
 d36110d43c134b40cd6f530a6eff1faedf0054a5bcfb407e3b716413e6260ffa  app/[lang]/resume/page.tsx
 50e4f9b7c1864c50761d729d6001bfac708c80457fa6fc41559a8ab1bd2573ff  app/fonts/Satoshi-Bold.otf
@@ -29,12 +29,12 @@ d9ad7f30eb9eaa63ddc2e06daa93b5cb73ac0757d7fc31cb3956b0173e3cdfd7  content/profil
 1b5b5dcf18689e4dea812135f59a29a6db980ebb0704f02cf8c727077458582c  lib/date-range.ts
 268ca9c5b6c9ca9219a34e97b748f7cd2f6c09dea280abaf617a9713dc75ae78  lib/dictionaries/en.tsx
 0bb9beb7145820dfcc0f37b6b0f50914103b33e9ceef7dfd69baa58267559ace  lib/dictionaries/index.ts
-ae2c49e2427c5c6e92cefdb99205c74f5bdca2098f3dbb877a17cd2e6b9fbb45  lib/language-versions.ts
-fce3c5a3125e574261dfbce96801cb67c9ad238c0a60df92c40efcc5e7016542  lib/projects.ts
+f34ef098963dc2cdccc4dcd2924f858196de8fa695ff78582e139a041297187a  lib/language-versions.ts
+2e44950dc5da2ef311e0d93450ddf37115f57b12294851d0587523561589bca4  lib/projects.ts
 330d9c46721583f77314851d3b124f34861ee53bc3f7a29cc60f668f08aa1f15  lib/resume.ts
 151067e098ac029d21d1d1142803bcf6ab71033eec2865175ea3b01c2fc02542  lib/route-transitions.ts
 90597c9b00eeb3347f01572dcf8c1753810763094a3fc872f74f57a5de8020a1  lib/scroll-spy.ts
 be58382477a53aee649684fc537650ea1e3a73cdcb51572f39acd727d98c4a83  lib/site-metadata.ts
 098a22bd39dab25aafc090661257d3767b588a34de0f337c2156be62d8b2fc10  lib/theme.ts
-ee7a5033734041932e865f33ca2bf6c724bd5e70ab02d5f7f9dacfd8af8c6a73  public/Roberto-Prats-EN.pdf
+eaca6a84c7ee31537bb699477c65efca41658d72cc8b66310ce7c3bdb9accbce  public/Roberto-Prats-EN.pdf
 394a40c0bb6c6b5e83fb221e59172f07ef3f499bc5f30961f4be48909648b92d  recipe

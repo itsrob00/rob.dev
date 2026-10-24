@@ -35,8 +35,8 @@ export function getProjects(lang: LanguageCode): Project[] {
 
 /** The Project with this slug in `lang`, or undefined (the page turns that into a 404). */
 export function getProject(
-  lang: LanguageCode,
   slug: string,
+  lang: LanguageCode,
 ): Project | undefined {
   return getProjects(lang).find((project) => project.slug === slug);
 }
@@ -148,7 +148,6 @@ function readFolder(lang: LanguageCode): Entry[] {
     );
 }
 
-/** One Language version's folder, validated. A missing folder holds no Projects. */
 function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
   const dir = path.join(process.cwd(), FOLDER, code);
   const entries: Entry[] = [];
@@ -193,8 +192,8 @@ function readLanguage(code: LanguageCode, problems: string[]): Entry[] {
 
 /** The compiled MDX body of a Project in `lang`. Takes a Project, so only validated files reach the import. */
 export async function loadProjectBody(
-  lang: LanguageCode,
   project: Project,
+  lang: LanguageCode,
 ): Promise<MDXContent> {
   const entry = readFolder(lang).find((e) => e.project.slug === project.slug);
   if (!entry) throw new Error(`No Project file for slug "${project.slug}"`);
