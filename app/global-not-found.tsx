@@ -18,7 +18,7 @@ import "./globals.css";
 // (e2e/metadata.spec.ts). The title is spelled out: no layout's template reaches this page.
 export const metadata: Metadata = {
   title: {
-    absolute: `${dictionary(DEFAULT_LANGUAGE_VERSION.code).notFound.title} | ${profile.name}`,
+    absolute: `${dictionary[DEFAULT_LANGUAGE_VERSION.code].notFound.title} | ${profile.name}`,
   },
 };
 
@@ -36,7 +36,7 @@ export default function GlobalNotFound() {
       <body>
         <main className={styles.page}>
           {LANGUAGE_VERSIONS.map(({ code, published }, index) => {
-            const { title, text } = dictionary(code).notFound;
+            const { title, text } = dictionary[code].notFound;
             const Heading = index === 0 ? "h1" : "h2";
             const home = published ? code : DEFAULT_LANGUAGE_VERSION.code;
             return (

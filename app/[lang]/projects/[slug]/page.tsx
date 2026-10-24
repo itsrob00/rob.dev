@@ -52,7 +52,7 @@ export default async function ProjectPage({
   if (!project) notFound();
   const Body = await loadProjectBody(project, code);
   const { repo, live } = project.links;
-  const t = dictionary(code).project;
+  const t = dictionary[code].project;
 
   return (
     <OneColumnPage lang={code}>

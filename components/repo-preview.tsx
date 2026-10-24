@@ -18,7 +18,7 @@ export function RepoPreviewCard({
     <Anchor
       className={styles.card}
       href={preview.href}
-      aria-label={dictionary(lang).project.repoPreview(preview.name)}
+      aria-label={dictionary[lang].project.repoPreview(preview.name)}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

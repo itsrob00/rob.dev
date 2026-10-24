@@ -8,8 +8,8 @@ export const en: Dictionary = {
     experience: "Experience",
   },
   sectionNav: "Sections",
-  language: "Language",
-  stack: "Stack",
+  languageMenu: "Language",
+  stackTags: "Stack",
   email: "Email",
   resume: "Résumé",
   back: "← Rob",
@@ -21,7 +21,7 @@ export const en: Dictionary = {
       or GDPR requests: {email}.
     </>
   ),
-  clock: "in Gaeta",
+  inGaeta: "in Gaeta",
   themeSwitch: { light: "Switch to light theme", dark: "Switch to dark theme" },
   dates: {
     months: [
@@ -53,6 +53,7 @@ export const en: Dictionary = {
     description: ({ name, role, location }) =>
       `Résumé of ${name}, ${role} based in ${location}.`,
     download: "Download PDF",
+    native: "Native",
     contact: "Contact",
     headings: {
       profile: "Profile",

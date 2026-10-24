@@ -38,7 +38,7 @@ const DASH = " – ";
 
 function parts(date: YearMonth, lang: LanguageCode) {
   const [year, month] = date.split("-") as [string, Month];
-  return { year, month: dictionary(lang).dates.months[MONTHS.indexOf(month)] };
+  return { year, month: dictionary[lang].dates.months[MONTHS.indexOf(month)] };
 }
 
 /**
@@ -63,7 +63,7 @@ export function formatDateRange(
   const startLabel =
     precision === "year" ? start.year : `${start.month} ${start.year}`;
   if (!range.end) {
-    return `${startLabel}${DASH}${dictionary(lang).dates.ongoing}`;
+    return `${startLabel}${DASH}${dictionary[lang].dates.ongoing}`;
   }
 
   const end = parts(range.end, lang);

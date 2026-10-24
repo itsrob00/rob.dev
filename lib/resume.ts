@@ -65,7 +65,7 @@ export function formatEducationDates(
 ): string {
   switch (dates.kind) {
     case "in-progress":
-      return dictionary(lang).dates.inProgress;
+      return dictionary[lang].dates.inProgress;
     case "months":
       return formatDateRange(dates, "month", lang);
     case "completed":

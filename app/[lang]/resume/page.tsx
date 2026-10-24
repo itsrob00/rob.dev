@@ -28,7 +28,7 @@ export async function generateMetadata({
   params,
 }: PageProps<"/[lang]/resume">): Promise<Metadata> {
   const version = languageVersion((await params).lang);
-  const t = dictionary(version.code);
+  const t = dictionary[version.code];
   return pageMetadata({
     version,
     path: "/resume",
@@ -48,7 +48,7 @@ export default async function ResumePage({
   const pdf = `Roberto-Prats-${pdfSuffix}.pdf`;
   const experience = experienceRecords[code];
   const resume = resumeRecords[code];
-  const t = dictionary(code);
+  const t = dictionary[code];
   const { headings } = t.resumePage;
   return (
     <OneColumnPage lang={code}>
@@ -163,7 +163,10 @@ export default async function ResumePage({
         <Section id="languages" title={headings.languages}>
           <p className={styles.text}>
             {resume.languages
-              .map(({ name, proficiency }) => `${name} (${proficiency})`)
+              .map(
+                ({ name, proficiency }) =>
+                  `${name} (${proficiency === "native" ? t.resumePage.native : proficiency})`,
+              )
               .join(" · ")}
           </p>
         </Section>

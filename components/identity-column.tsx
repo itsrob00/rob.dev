@@ -17,7 +17,7 @@ export function IdentityColumn({
   lang: LanguageCode;
   nav: readonly NavItem[];
 }) {
-  const t = dictionary(lang);
+  const t = dictionary[lang];
   const { role, location, blurb } = profileCopy[lang];
   return (
     <FadeUp as="header" stagger className={styles.column}>
@@ -49,9 +49,9 @@ export function IdentityColumn({
           </li>
         </ul>
         <div className={styles.meta}>
-          <GaetaClock place={t.clock} />
+          <GaetaClock place={t.inGaeta} />
           <ThemeToggle labels={t.themeSwitch} />
-          <LanguageMenu label={t.language} sections={nav} align="end" />
+          <LanguageMenu label={t.languageMenu} sections={nav} align="end" />
         </div>
       </div>
     </FadeUp>

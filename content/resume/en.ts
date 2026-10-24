@@ -58,8 +58,8 @@ export const en = {
     },
   ],
   languages: [
-    { name: "Italian", proficiency: "Native" },
-    { name: "English", proficiency: "Native" },
+    { name: "Italian", proficiency: "native" },
+    { name: "English", proficiency: "native" },
   ],
   education: [
     {

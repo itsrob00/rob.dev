@@ -47,7 +47,7 @@ export function projectKicker(
   lang: LanguageCode,
 ): string {
   // Every Project is public work (GLOSSARY). Revisit for one with only a live link.
-  return dictionary(lang).project.kicker(project.start.slice(0, 4));
+  return dictionary[lang].project.kicker(project.start.slice(0, 4));
 }
 
 // Relative to process.cwd(). loadProjectBody's import spells it again: a bundler import needs a literal.

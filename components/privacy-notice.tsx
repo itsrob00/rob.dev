@@ -6,7 +6,7 @@ import styles from "./privacy-notice.module.css";
 
 // The Privacy notice: one muted note at the foot of the home page, kept deliberately short.
 export function PrivacyNotice({ lang }: { lang: LanguageCode }) {
-  const t = dictionary(lang);
+  const t = dictionary[lang];
   return (
     <footer id="privacy" aria-label={t.privacy} className={styles.notice}>
       <p>

@@ -12,7 +12,7 @@ export function StackTags({
   stack: readonly string[];
 }) {
   return (
-    <ul className={styles.tags} aria-label={dictionary(lang).stack}>
+    <ul className={styles.tags} aria-label={dictionary[lang].stackTags}>
       {stack.map((item) => (
         <li key={item} className={styles.tag}>
           <Technology name={item} markSize={13} />

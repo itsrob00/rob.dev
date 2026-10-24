@@ -32,7 +32,7 @@ describe("formatGaetaTime", () => {
 describe("GaetaClock", () => {
   const prerender = (lang: "en" | "it") =>
     renderToStaticMarkup(
-      createElement(GaetaClock, { place: dictionary(lang).clock }),
+      createElement(GaetaClock, { place: dictionary[lang].inGaeta }),
     );
 
   test("says where the time is, in English", () => {

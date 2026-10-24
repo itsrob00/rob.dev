@@ -12,9 +12,8 @@ export type SkillGroup = {
   items: readonly [string, ...string[]];
 };
 
-/** CEFR levels, plus "Native" (Italian "Madrelingua") for a mother tongue. A typo or an invented level fails the type check. */
-export type Proficiency =
-  "Native" | "Madrelingua" | "C2" | "C1" | "B2" | "B1" | "A2" | "A1";
+/** CEFR levels, plus "native" for a mother tongue. A typo or an invented level fails the type check. */
+export type Proficiency = "native" | "C2" | "C1" | "B2" | "B1" | "A2" | "A1";
 
 export type Language = { name: string; proficiency: Proficiency };
 

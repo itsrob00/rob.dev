@@ -17,7 +17,7 @@ export function OneColumnPage({
   lang: LanguageCode;
   children: ReactNode;
 }) {
-  const t = dictionary(lang);
+  const t = dictionary[lang];
   return (
     <PageTransition>
       <main className={styles.page}>
@@ -30,7 +30,7 @@ export function OneColumnPage({
         </NavLink>
         {children}
         <footer className={styles.footer}>
-          <LanguageMenu label={t.language} />
+          <LanguageMenu label={t.languageMenu} />
         </footer>
       </main>
     </PageTransition>

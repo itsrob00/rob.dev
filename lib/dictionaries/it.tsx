@@ -8,8 +8,8 @@ export const it: Dictionary = {
     experience: "Esperienza",
   },
   sectionNav: "Sezioni",
-  language: "Lingua",
-  stack: "Stack",
+  languageMenu: "Lingua",
+  stackTags: "Stack",
   email: "Email",
   resume: "Curriculum",
   back: "← Rob",
@@ -21,7 +21,7 @@ export const it: Dictionary = {
       nel tuo browser. Domande o richieste GDPR: {email}.
     </>
   ),
-  clock: "a Gaeta",
+  inGaeta: "a Gaeta",
   themeSwitch: { light: "Passa al tema chiaro", dark: "Passa al tema scuro" },
   dates: {
     months: [
@@ -53,6 +53,7 @@ export const it: Dictionary = {
     description: ({ name, role, location }) =>
       `Curriculum di ${name}, ${role} con base a ${location}.`,
     download: "Scarica PDF",
+    native: "Madrelingua",
     contact: "Contatti",
     headings: {
       profile: "Profilo",

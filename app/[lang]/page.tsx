@@ -46,7 +46,7 @@ const sections = [
 
 export default async function Home({ params }: PageProps<"/[lang]">) {
   const { code } = languageVersion((await params).lang);
-  const titles = dictionary(code).sections;
+  const titles = dictionary[code].sections;
   // Only plain data crosses to the client nav: Body is a function and can't.
   const nav = sections.map(({ id }) => ({ id, title: titles[id] }));
   return (
