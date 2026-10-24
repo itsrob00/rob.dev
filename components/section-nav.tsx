@@ -22,7 +22,7 @@ function subscribe(onChange: () => void) {
 }
 
 // The sections' positions are the store: the active id is derived on every read, never kept.
-function measureActive(items: readonly NavItem[]) {
+export function measureActive(items: readonly NavItem[]) {
   const sections = items.map(({ id }) => {
     const element = document.getElementById(id);
     if (!element) return { id, top: Infinity, line: 0 };

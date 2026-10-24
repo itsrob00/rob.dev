@@ -51,7 +51,7 @@ export function IdentityColumn({
         <div className={styles.meta}>
           <GaetaClock place={t.clock} />
           <ThemeToggle labels={t.themeSwitch} />
-          <LanguageMenu label={t.language} align="end" />
+          <LanguageMenu label={t.language} sections={nav} align="end" />
         </div>
       </div>
     </FadeUp>

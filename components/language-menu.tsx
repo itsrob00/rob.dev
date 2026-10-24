@@ -11,15 +11,24 @@ import {
 } from "react";
 import { languageMenu } from "@/lib/language-versions";
 import { Anchor } from "./anchor";
+import { measureActive, type NavItem } from "./section-nav";
 import styles from "./language-menu.module.css";
 
 const GLIDE_MS = 350;
 
+function placeInPage(sections: readonly NavItem[]): string {
+  if (window.location.hash || window.scrollY === 0) return window.location.hash;
+  const active = measureActive(sections);
+  return active ? `#${active}` : "";
+}
+
 export function LanguageMenu({
   label,
+  sections = [],
   align = "start",
 }: {
   label: string;
+  sections?: readonly NavItem[];
   align?: "start" | "end";
 }) {
   const pathname = usePathname();
@@ -73,10 +82,11 @@ export function LanguageMenu({
         ref={pill}
         type="button"
         className={styles.pill}
+        aria-label={`${label}: ${current?.code.toUpperCase()}`}
         aria-expanded={open}
         aria-controls={listId}
         onClick={() => {
-          setHash(window.location.hash);
+          setHash(placeInPage(sections));
           setOpen(!open);
         }}
       >

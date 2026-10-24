@@ -212,19 +212,38 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
     "GitHub",
     "Résumé",
     "Switch to light theme",
-    "EN\n▴",
+    "Language: EN",
   ]);
 });
 
 function languageMenu(page: Page, lang: "en" | "it" = "en") {
-  const nav = page.getByRole("navigation", {
-    name: lang === "en" ? "Language" : "Lingua",
-  });
+  const label = lang === "en" ? "Language" : "Lingua";
+  const nav = page.getByRole("navigation", { name: label });
   return {
     nav,
-    pill: nav.getByRole("button", { name: lang.toUpperCase() }),
+    pill: nav.getByRole("button", {
+      name: `${label}: ${lang.toUpperCase()}`,
+      exact: true,
+    }),
     entries: nav.getByRole("link"),
   };
+}
+
+for (const [lang, name] of [
+  ["en", "Language: EN"],
+  ["it", "Lingua: IT"],
+] as const) {
+  test(`the language menu's pill is named as the language choice, with its visible code in the name, on /${lang}`, async ({
+    page,
+  }) => {
+    await page.goto(`/${lang}`);
+    const pill = page.getByRole("button", { expanded: false }).filter({
+      hasText: lang.toUpperCase(),
+    });
+    await expect(pill).toHaveAccessibleName(name);
+    await expect(pill).toHaveText(new RegExp(`^${lang.toUpperCase()}\\W*$`));
+    await expect(pill).not.toHaveAttribute("aria-haspopup", /.*/);
+  });
 }
 
 test("the language menu opens upward from its pill after the clock and the theme switch, listing each Language version in its own language", async ({
@@ -300,6 +319,28 @@ test("the language menu links to the section the visitor was reading", async ({
   await pill.click();
   await expect(entries.first()).toHaveAttribute("href", "/en#stack");
   await expect(entries.last()).toHaveAttribute("href", "/it#stack");
+});
+
+test("switching language after scrolling to a section, without the section nav, keeps that section", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page.locator("#experience").evaluate((section) => {
+    section.scrollIntoView({ behavior: "instant" });
+  });
+  await expect(
+    page
+      .getByRole("navigation", { name: "Sections" })
+      .getByRole("link", { name: "Experience" }),
+  ).toHaveAttribute("aria-current", "location");
+  expect(new URL(page.url()).hash).toBe("");
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await entries.and(page.locator('[lang="it"]')).click();
+
+  await expect(page).toHaveURL(/\/it#experience$/);
+  await expect(page.locator("#experience-title")).toBeInViewport();
 });
 
 for (const [from, to, route] of [
