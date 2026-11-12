@@ -2,18 +2,24 @@
  * animate at all, so this media query is the one source of truth for reduced motion).
  *
  * Nothing is hidden unless motion is welcome and scripting is on: reduced-motion and no-JS visitors
- * see plain content from the first paint. While "pending" (before JS takes over) a fail-safe reveals
- * it after 4s, in case the JS never loads. */
+ * see plain content from the first paint, and so does a page reached by a language switch. While
+ * "pending" (before JS takes over) a fail-safe reveals it after 4s, in case the JS never loads. */
 
 @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-  .self:not([data-phase="shown"]),
-  .children:not([data-phase="shown"]) > * {
+  .self[data-phase="armed"],
+  .children[data-phase="armed"] > *,
+  :root:not([data-arrival="language-switch"]) .self[data-phase="pending"],
+  :root:not([data-arrival="language-switch"])
+    .children[data-phase="pending"]
+    > * {
     opacity: 0;
     transform: translateY(16px);
   }
 
-  .self[data-phase="pending"],
-  .children[data-phase="pending"] > * {
+  :root:not([data-arrival="language-switch"]) .self[data-phase="pending"],
+  :root:not([data-arrival="language-switch"])
+    .children[data-phase="pending"]
+    > * {
     animation: failsafe 0s 4s forwards;
   }
 }

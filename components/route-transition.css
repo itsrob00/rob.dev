@@ -3,6 +3,12 @@
  * pseudo-element names the side: -old is the page leaving, -new the page arriving.
  * Global on purpose: the ::view-transition-* pseudo-elements hang off <html>, out of a module's reach. */
 
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  @view-transition {
+    navigation: auto;
+  }
+}
+
 /* Clicks during a transition reach the live page, not the overlay. */
 ::view-transition {
   pointer-events: none;

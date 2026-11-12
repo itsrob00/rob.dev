@@ -17,6 +17,12 @@ const LIST = [
 
 export type LanguageCode = (typeof LIST)[number]["code"];
 
+type RegionOf<Locale> = Locale extends `${string}_${infer Region}`
+  ? Region
+  : never;
+
+export type FlagRegion = RegionOf<(typeof LIST)[number]["ogLocale"]>;
+
 export type LanguageVersion = {
   code: LanguageCode;
   name: string;
@@ -52,6 +58,7 @@ export function pathIn(code: LanguageCode, path: SitePath): SitePath {
 export type LanguageMenuEntry = {
   code: LanguageCode;
   name: string;
+  region: FlagRegion;
   href: string;
   current: boolean;
 };
@@ -62,9 +69,10 @@ export function languageMenu(
 ): LanguageMenuEntry[] {
   const [, current, ...rest] = pathname.split("/");
   const path: SitePath = `/${rest.join("/")}${hash}`;
-  return publishedLanguageVersions().map(({ code, name }) => ({
+  return publishedLanguageVersions().map(({ code, name, ogLocale }) => ({
     code,
     name,
+    region: ogLocale.slice(ogLocale.indexOf("_") + 1) as FlagRegion,
     href: pathIn(code, path),
     current: code === current,
   }));

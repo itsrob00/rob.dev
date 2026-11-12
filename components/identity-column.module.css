@@ -63,6 +63,12 @@
   font-size: 12.5px;
 }
 
+.controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 @media (max-width: 860px) {
   .column {
     position: static;

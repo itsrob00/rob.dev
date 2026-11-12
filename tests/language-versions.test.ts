@@ -57,10 +57,22 @@ describe("pathIn", () => {
 });
 
 describe("languageMenu", () => {
-  test("lists each published Language version by native name, linking to the same page, with the current one marked", () => {
+  test("lists each published Language version by native name and flag, linking to the same page, with the current one marked", () => {
     expect(languageMenu("/en/resume", "")).toEqual([
-      { code: "en", name: "English", href: "/en/resume", current: true },
-      { code: "it", name: "Italiano", href: "/it/resume", current: false },
+      {
+        code: "en",
+        name: "English",
+        region: "US",
+        href: "/en/resume",
+        current: true,
+      },
+      {
+        code: "it",
+        name: "Italiano",
+        region: "IT",
+        href: "/it/resume",
+        current: false,
+      },
     ]);
   });
 

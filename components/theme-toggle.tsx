@@ -8,6 +8,7 @@ import {
   saveTheme,
   type Theme,
 } from "@/lib/theme";
+import pillStyles from "./pill.module.css";
 import styles from "./theme-toggle.module.css";
 
 // <html data-theme> is the source of truth: the head script sets it before paint, and the toggle changes it.
@@ -42,7 +43,7 @@ export function ThemeToggle({ labels }: { labels: Record<Theme, string> }) {
   return (
     <button
       type="button"
-      className={styles.toggle}
+      className={pillStyles.pill}
       aria-label={labels[next]}
       onClick={() => {
         setRoll((last) => ({ from: theme, count: (last?.count ?? 0) + 1 }));

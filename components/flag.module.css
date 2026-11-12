@@ -1,0 +1,8 @@
+.flag {
+  flex: none;
+  width: 15px;
+  height: 10px;
+  border-radius: 2px;
+  outline: 1px solid rgb(0 0 0 / 0.15);
+  outline-offset: -1px;
+}

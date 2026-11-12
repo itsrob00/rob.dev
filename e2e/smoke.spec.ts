@@ -239,7 +239,8 @@ for (const [lang, name] of [
       hasText: lang.toUpperCase(),
     });
     await expect(pill).toHaveAccessibleName(name);
-    await expect(pill).toHaveText(new RegExp(`^${lang.toUpperCase()}\\W*$`));
+    await expect(pill).toHaveText(lang.toUpperCase());
+    await expect(pill.locator("svg[aria-hidden=true]")).toHaveCount(1);
     await expect(pill).not.toHaveAttribute("aria-haspopup", /.*/);
   });
 }
@@ -255,6 +256,9 @@ test("the language menu opens upward from its pill after the clock and the theme
   await pill.click();
   await expect(pill).toHaveAttribute("aria-expanded", "true");
   await expect(entries).toHaveText([/^English\s*EN$/, /^Italiano\s*IT$/]);
+  for (const entry of await entries.all()) {
+    await expect(entry.locator("svg[aria-hidden=true]")).toHaveCount(1);
+  }
   const [english, italian] = [entries.first(), entries.last()];
   await expect(english).toHaveAttribute("href", "/en");
   await expect(english).toHaveAttribute("hreflang", "en");
@@ -275,9 +279,10 @@ test("the language menu opens upward from its pill after the clock and the theme
   const row = await Promise.all(
     [clock, theme, pill].map(async (item) => (await item.boundingBox())!),
   );
-  expect(row[0].x).toBeLessThan(row[1].x);
-  expect(row[1].x).toBeLessThan(row[2].x);
+  expect(row[1].x - (row[0].x + row[0].width)).toBeCloseTo(16, 0);
+  expect(row[2].x - (row[1].x + row[1].width)).toBeCloseTo(6, 0);
   expect(Math.abs(row[1].y - row[2].y)).toBeLessThan(2);
+  expect(row[2].height).toBe(row[1].height);
 });
 
 test("the language menu closes on Escape, returning focus to its pill, and on a click outside it", async ({
@@ -367,37 +372,134 @@ for (const [from, to, route] of [
   });
 }
 
-function dotCentre(nav: Locator) {
-  return nav.evaluate((root) => {
-    const id = root.querySelector("button")!.getAttribute("aria-controls")!;
-    const { top, height } = document
-      .getElementById(id)!
-      .querySelector(":scope > [aria-hidden]")!
-      .getBoundingClientRect();
-    return top + height / 2;
+async function recordReveal(page: Page) {
+  await page.addInitScript(() => {
+    const record = window as unknown as { reveal?: string };
+    addEventListener("pagereveal", (event) => {
+      const transition = (event as PageRevealEvent).viewTransition;
+      if (!transition) {
+        record.reveal = "none";
+        return;
+      }
+      transition.ready.then(
+        () => (record.reveal = "ran"),
+        () => (record.reveal = "skipped"),
+      );
+    });
   });
+  return () =>
+    page.evaluate(() => (window as unknown as { reveal?: string }).reveal);
 }
 
-test("the language menu's dot glides to the picked language before the page changes", async ({
+test("picking a language crossfades to the other Language version, where nothing rises", async ({
+  page,
+}) => {
+  const reveal = await recordReveal(page);
+  await page.goto("/en");
+  await expect.poll(reveal).toBe("none");
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await entries.last().click();
+  await expect(page).toHaveURL(/\/it$/);
+  await expect.poll(reveal).toBe("ran");
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-arrival",
+    "language-switch",
+  );
+  const identity = page.locator("header").first();
+  await expect(identity).toHaveAttribute("data-phase", "shown");
+  expect(await paintedOpacity(page.getByRole("heading", { level: 1 }))).toBe(1);
+  expect(await animations(identity)).toBe(0);
+});
+
+test("only a language switch crossfades: a reload, a link within one language and the back button don't", async ({
+  page,
+}) => {
+  const reveal = await recordReveal(page);
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await entries.last().click();
+  await expect.poll(reveal).toBe("ran");
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/en$/);
+  await expect.poll(reveal).not.toBe("ran");
+  await expect(page.locator("html")).not.toHaveAttribute("data-arrival");
+
+  for (const [href, url] of [
+    ["/en/resume", /\/en\/resume$/],
+    ["/en/nowhere", /\/en\/nowhere$/],
+  ] as const) {
+    await page.evaluate((target) => {
+      const link = document.createElement("a");
+      link.href = target;
+      document.body.append(link);
+      link.click();
+    }, href);
+    await expect(page).toHaveURL(url);
+    await expect.poll(reveal).not.toBe("ran");
+    await expect(page.locator("html")).not.toHaveAttribute("data-arrival");
+  }
+  await page.goto("/en/resume");
+
+  await page.reload();
+  await expect.poll(reveal).toBe("none");
+});
+
+test("after a language switch, going home through the site still rises", async ({
   page,
 }) => {
   await page.goto("/en/resume");
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await entries.last().click();
+  await expect(page).toHaveURL(/\/it\/resume$/);
+  await expect(page.locator("html")).toHaveAttribute(
+    "data-arrival",
+    "language-switch",
+  );
+
+  await page.evaluate(() => {
+    const seen: string[] = [];
+    (window as unknown as { phases: string[] }).phases = seen;
+    new MutationObserver(() => {
+      const phase = document
+        .querySelector("header[data-phase]")
+        ?.getAttribute("data-phase");
+      if (phase && seen.at(-1) !== phase) seen.push(phase);
+    }).observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributeFilter: ["data-phase"],
+    });
+  });
+  await page.getByRole("link", { name: /Rob/ }).first().click();
+  await expect(page).toHaveURL(/\/it$/);
+  await expect(page.locator("header").first()).toHaveAttribute(
+    "data-phase",
+    "shown",
+  );
+  const phases = await page.evaluate(
+    () => (window as unknown as { phases: string[] }).phases,
+  );
+  expect(phases[0]).toBe("armed");
+});
+
+test("picking a language opens the other Language version at once", async ({
+  page,
+}) => {
+  await page.goto("/en#work");
   const { nav, pill, entries } = languageMenu(page);
   await pill.click();
-  const italian = (await entries.last().boundingBox())!;
-  expect(await dotCentre(nav)).toBeLessThan(italian.y);
-
-  let release = () => {};
-  const held = new Promise<void>((resolve) => (release = resolve));
-  await page.route("**/it/resume", async (route) => {
-    await held;
-    await route.continue();
-  });
+  await rollEnd(nav);
+  const requested = page.waitForRequest(/\/it$/);
+  const clicked = Date.now();
   await entries.last().click();
-  await expect.poll(() => dotCentre(nav)).toBeGreaterThan(italian.y);
-  expect(await dotCentre(nav)).toBeLessThan(italian.y + italian.height);
-  release();
-  await expect(page).toHaveURL(/\/it\/resume$/);
+  await requested;
+  expect(Date.now() - clicked).toBeLessThan(200);
+  await expect(page).toHaveURL(/\/it#work$/);
 });
 
 test("picking a language keeps the theme, with no flash", async ({ page }) => {
@@ -438,25 +540,12 @@ test("the language menu fits a 375px screen when open, and is hidden in print", 
   await expect(entries.first()).toBeHidden();
 });
 
-test("the language menu rises as it opens, and its dot is set to glide", async ({
-  page,
-}) => {
+test("the language menu rises as it opens", async ({ page }) => {
   await page.goto("/en");
   const { nav, pill } = languageMenu(page);
   await pill.click();
   expect(await animations(nav)).toBeGreaterThan(0);
-  expect(await glideDuration(nav)).not.toBe("0s");
 });
-
-function glideDuration(nav: Locator) {
-  return nav.evaluate((root) => {
-    const id = root.querySelector("button")!.getAttribute("aria-controls")!;
-    const dot = document
-      .getElementById(id)!
-      .querySelector(":scope > [aria-hidden]")!;
-    return getComputedStyle(dot).transitionDuration;
-  });
-}
 
 test("section nav scrolls to a section and marks it as the current one", async ({
   page,
@@ -893,29 +982,24 @@ test.describe("under reduced motion", () => {
     expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
   });
 
-  test("the language menu opens without rising, and its dot won't glide", async ({
-    page,
-  }) => {
+  test("the language menu opens without rising", async ({ page }) => {
     await page.goto("/en");
     const { nav, pill, entries } = languageMenu(page);
     await pill.click();
     await expect(entries.first()).toBeVisible();
     expect(await animations(nav)).toBe(0);
-    expect(await glideDuration(nav)).toBe("0s");
   });
 
-  test("picking a language switches the page without waiting for a glide", async ({
+  test("picking a language swaps the page without a crossfade", async ({
     page,
   }) => {
-    await page.goto("/en#work");
+    const reveal = await recordReveal(page);
+    await page.goto("/en");
     const { pill, entries } = languageMenu(page);
     await pill.click();
-    const requested = page.waitForRequest(/\/it$/);
-    const clicked = Date.now();
     await entries.last().click();
-    await requested;
-    expect(Date.now() - clicked).toBeLessThan(200);
-    await expect(page).toHaveURL(/\/it#work$/);
+    await expect(page).toHaveURL(/\/it$/);
+    await expect.poll(reveal).toBe("none");
   });
 
   test("home content is visible at first paint, before any script runs", async ({
