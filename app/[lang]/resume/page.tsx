@@ -124,9 +124,10 @@ export default async function ResumePage({
 
         <Section id="projects" title={headings.projects}>
           <ol className={styles.entries}>
-            {/* Only what a reader can open: one that isn't public yet waits on the site. */}
+            {/* Only what a reader can open: one that isn't public yet waits on the site. A Concept stays on the site; the page is one sheet. */}
             {getProjects(code)
               .filter(isOpenable)
+              .filter((project) => project.kind !== "Concept")
               .map((project) => (
                 <li key={project.slug}>
                   <Entry

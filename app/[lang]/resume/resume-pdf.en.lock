@@ -2,7 +2,7 @@
 # sha256 of each Résumé input (text with LF endings; Project MDX: frontmatter only), then of the PDF.
 595950c52847b3f28410ab16222e04176ebd45b0cb8670f3597db23fc4a455c7  app/[lang]/layout.tsx
 fb875fec15b53562553503dc57f2d00308767687594a7f6118f25bf9d250f3b6  app/[lang]/resume/page.module.css
-fa6fde4bd3fabeb323498158d08a77e58d3eaa09fca640ab720c4b30a75b0271  app/[lang]/resume/page.tsx
+8a8769a0cf15d35ba96d489ae178d48a12ec07df616c493f13efa572b525975a  app/[lang]/resume/page.tsx
 50e4f9b7c1864c50761d729d6001bfac708c80457fa6fc41559a8ab1bd2573ff  app/fonts/Satoshi-Bold.otf
 93330866d109f6b2e298748958ec6fa4010cacef586783f281a0b268cab7fc6e  app/fonts/Satoshi-Medium.otf
 711c6243cdc5431f9cc966e4de18bfb940365bad81acffd1e7948dbe3f254386  app/fonts/Satoshi-Regular.otf
@@ -24,7 +24,7 @@ f914fc85d6930b29905eacca351a30c0f4ac517e2a988acaf2abd31d1de95791  content/experi
 3dc795e9a73590211626372078c0c10d5b1d81c5c222d3b16f12238b9f81faeb  content/profile/en.ts
 d9ad7f30eb9eaa63ddc2e06daa93b5cb73ac0757d7fc31cb3956b0173e3cdfd7  content/profile/index.ts
 ada1397cd37ba1d7ce266bf687eac2666727c337e87fdfdb4800a59f78fe5261  content/projects/en/devflow.mdx
-513900276ee0bc0ae42e7be58bbc877e814e349cab97a1537856c8b863910bae  content/projects/en/exolab-redesign.mdx
+10e70d0fdacb53b3e7ee486c295155e1bc74cc24bf95e3b991fc5e8bcd5bef6b  content/projects/en/exolab-redesign.mdx
 b0563c3fcf86150d02a8ef5e2f8686841629fef2b2e41577fd914540a717e345  content/resume/en.ts
 065884749ba3dc37ba82438ffaa0ad6338a5610cc3ac6e534968d2b359efee40  content/resume/index.ts
 f00a39b58603ee6905ba3c2e99ba0ddf22d09365a0a19660a3aabf643233da99  lib/date-range.ts
@@ -37,5 +37,5 @@ f34ef098963dc2cdccc4dcd2924f858196de8fa695ff78582e139a041297187a  lib/language-v
 90597c9b00eeb3347f01572dcf8c1753810763094a3fc872f74f57a5de8020a1  lib/scroll-spy.ts
 be58382477a53aee649684fc537650ea1e3a73cdcb51572f39acd727d98c4a83  lib/site-metadata.ts
 098a22bd39dab25aafc090661257d3767b588a34de0f337c2156be62d8b2fc10  lib/theme.ts
-6be46b5d023cfda44c83949bdcc97ed4e45a3627c7d30440fdda266bda6e95d6  public/Roberto-Prats-EN.pdf
+3736f083a714477ebea18021bae1a19f734e8410bb25e855fbe8cf80fceca63d  public/Roberto-Prats-EN.pdf
 394a40c0bb6c6b5e83fb221e59172f07ef3f499bc5f30961f4be48909648b92d  recipe

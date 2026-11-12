@@ -709,7 +709,7 @@ test.describe("on a touch screen", () => {
   });
 });
 
-test("Exolab's page says it's an unofficial concept, with nothing to open yet", async ({
+test("Exolab's page says it's an unofficial concept, with its preview to open and no repo", async ({
   page,
 }) => {
   const errors = trackErrors(page);
@@ -729,9 +729,8 @@ test("Exolab's page says it's an unofficial concept, with nothing to open yet", 
       "An unofficial concept, not affiliated with or endorsed by Exolab S.r.l.",
     ),
   ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: /Repository|Live site/ }),
-  ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Live site ↗" })).toHaveCount(1);
+  await expect(page.getByRole("link", { name: "Repository ↗" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /on GitHub$/ })).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
@@ -1023,6 +1022,27 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
 
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
+});
+
+test("the Exolab redesign page links its preview, and the Résumé leaves the Concept out", async ({
+  page,
+}) => {
+  for (const [lang, live] of [
+    ["en", "Live site ↗"],
+    ["it", "Sito online ↗"],
+  ]) {
+    await page.goto(`/${lang}/projects/exolab-redesign`);
+    await expect(page.getByRole("link", { name: live })).toHaveAttribute(
+      "href",
+      "https://claude.ai/artifact/Atk8ShxwNfEGxcMKTRu3H8",
+    );
+    await expect(page.getByRole("link", { name: "Repository ↗" })).toHaveCount(
+      0,
+    );
+
+    await page.goto(`/${lang}/resume`);
+    await expect(page.getByText("Exolab redesign")).toHaveCount(0);
+  }
 });
 
 for (const route of [
