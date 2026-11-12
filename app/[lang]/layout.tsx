@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { jetbrainsMono, satoshi } from "../fonts";
+import { languageSwitchScript } from "@/lib/language-switch";
 import { languageParams, languageVersion } from "@/lib/language-versions";
 import { rootMetadata } from "@/lib/site-metadata";
 import { DEFAULT_THEME, themeScript } from "@/lib/theme";
@@ -34,6 +35,7 @@ export default async function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: languageSwitchScript }} />
       </head>
       <body>
         {children}

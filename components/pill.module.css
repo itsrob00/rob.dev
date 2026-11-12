@@ -1,0 +1,23 @@
+.pill {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  line-height: 1.4em;
+  cursor: pointer;
+}
+
+.pill:hover {
+  border-color: var(--accent);
+}
+
+@media print {
+  .pill {
+    display: none;
+  }
+}

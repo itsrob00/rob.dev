@@ -9,6 +9,7 @@ import {
   LANGUAGE_VERSIONS,
   pathIn,
 } from "@/lib/language-versions";
+import { languageSwitchScript } from "@/lib/language-switch";
 import { DEFAULT_THEME, themeScript } from "@/lib/theme";
 import { jetbrainsMono, satoshi } from "./fonts";
 import styles from "./global-not-found.module.css";
@@ -32,6 +33,7 @@ export default function GlobalNotFound() {
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: languageSwitchScript }} />
       </head>
       <body>
         <main className={styles.page}>

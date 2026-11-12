@@ -13,6 +13,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type FocusEventHandler,
   type PointerEventHandler,
   type ReactNode,
@@ -24,13 +25,14 @@ import styles from "./motion.module.css";
 
 /**
  * Where a FadeUp is, rendered as data-phase for motion.module.css:
- *   pending  the server HTML and the first client render (identical, so hydration matches). Hidden
- *            by CSS only when motion is welcome and scripting is on, with a fail-safe that reveals
- *            it if JS never takes over.
- *   armed    JS owns it: still hidden, fail-safe off, waiting to rise.
+ *   pending  the server HTML and its hydration render (identical, so hydration matches). Hidden
+ *            by CSS only when motion is welcome, scripting is on and the page didn't arrive by a
+ *            language switch, with a fail-safe that reveals it if JS never takes over.
+ *   armed    JS owns it: still hidden, fail-safe off, waiting to rise. A FadeUp mounted on the
+ *            client, by a route change, starts here.
  *   shown    nothing hides it.
- * It only moves forward (pending → armed → shown, or pending → shown), so a FadeUp never hides
- * content that is already visible.
+ * It only moves forward (pending → armed → shown, pending → shown, or armed → shown), so a FadeUp
+ * never hides content that is already visible.
  */
 type Phase = "pending" | "armed" | "shown";
 
@@ -46,7 +48,8 @@ const STAGGER_SECONDS = 0.08;
  * sit on screen invisible while too little of the block shows.
  *
  * On a page reached through a route transition nothing rises until the transition has finished; on
- * a first load or a browser back it rises at once.
+ * a first load or a browser back it rises at once; on a page reached by a language switch it doesn't
+ * rise at all.
  *
  * Reduced motion is decided by the stylesheet alone: CSS hides the content only when motion is
  * welcome, and the mount checks whether it's hidden. If not (reduced motion, no JS support for the
@@ -69,7 +72,14 @@ export function FadeUp({
 }) {
   // Typed as a div, whose ref a header's accepts too; only HTMLElement members are used.
   const [scope, animate] = useAnimate<HTMLDivElement>();
-  const [phase, setPhase] = useState<Phase>("pending");
+  const mountedOnClient = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
+  const [phase, setPhase] = useState<Phase>(
+    mountedOnClient ? "armed" : "pending",
+  );
   const arrival = useRef<Promise<void>>(null);
   const seen = useInView(scope, { once: true, margin: "0px 0px -10% 0px" });
 
@@ -117,6 +127,8 @@ export function FadeUp({
     </Tag>
   );
 }
+
+const noSubscription = () => () => {};
 
 /** The elements that rise: the FadeUp itself, or its direct children when staggering. */
 function targetsOf(element: HTMLElement | null, stagger: boolean) {

@@ -62,3 +62,7 @@ _Avoid_: Link preview, unfurl, embed
 **Language version**:
 One language's copy of the site: English and Italian today, more later. Every page exists in each, at its own path (`/en/…`, `/it/…`), and each has its own Résumé. One list names them all; a Language version goes live only once it's published there. Not the same as the languages Rob speaks, which the Résumé lists.
 _Avoid_: Locale, translation, edition
+
+**Language switch**:
+Picking another Language version from the language menu, which opens the same page, at the same place, in that Language version. The page crossfades into the new one and nothing on it rises.
+_Avoid_: Translate, locale change
