@@ -1,0 +1,46 @@
+---
+slug: devflow
+title: devflow
+summary: Un plugin per Claude Code che pianifica, sviluppa, verifica e dimostra ogni task, un passo alla volta.
+role: Creator & maintainer
+kind: Open source
+start: "2026-10"
+stack: [Claude Code, Node.js, JavaScript]
+links:
+  repo: https://github.com/itsrob00/devflow
+---
+
+## Problema
+
+Da un po' usavo in Claude Code le skill di Matt Pocock e pstack di Lauren Tan, ed entrambe sono ottime. Insieme, però, sono anche tante: decine di skill, ognuna brava in una cosa sola, e la parte difficile era capire quale lanciare dopo. Una feature richiede un'intervista di design prima di scrivere codice. Un bug richiede un test che fallisce prima della correzione. Una migrazione ha bisogno di un piano che sopravviva a una singola sessione. Sceglievo l'ordine a mano e, nelle giornate più piene, saltavo proprio i passaggi che contano di più, come la review o la prova della modifica nell'app in esecuzione.
+
+## Approccio
+
+devflow mette entrambe le raccolte dietro un solo comando:
+
+```
+/devflow:start <cosa vuoi fare>
+```
+
+Assegna il task a uno di quattro flussi (una feature, un bug, un lavoro su più sessioni o una piccola modifica), poi esegue in ordine le skill di quel flusso e si ferma ogni volta che un passaggio richiede una mia decisione. Una feature parte dalla comprensione del codice e passa per una sessione di domande serrate che registra le decisioni, poi per il design, uno sviluppo guidato dai test, la review, una prova nell'app reale che dimostra che funziona e il testo della PR. Un bug ottiene una riproduzione che fallisce e un test di regressione prima della correzione.
+
+Alcune scelte gli hanno dato forma:
+
+- **Non copia le skill di nessuno.** Il suo marketplace installa le skill che esegue direttamente dai repository originali e le tiene allineate con quei repository. Le skill che non usa restano fuori, comprese quelle che andrebbero in conflitto.
+- **Il setup si fa una volta per repository.** `/devflow:setup` fa tutte le domande in una volta, mostra ogni bozza in un'unica revisione, poi fa il resto senza fermarsi.
+- **Git resta mio.** Un hook di sicurezza blocca i push e tutto ciò che butterebbe via del lavoro, e mi indica il comando da lanciare al suo posto.
+- **Il lavoro può durare più sessioni.** Una feature lunga si chiude in ticket, ognuno sviluppato in una sessione nuova con `/devflow:start ticket <ref>`, e un lavoro grande passa da una sessione all'altra con un file che dice esattamente da dove ripartire.
+
+## Risultato
+
+Lo uso e lo aggiorno ogni giorno. Questo sito è stato pianificato e sviluppato con devflow, un ticket alla volta. È open source con licenza MIT, e si installa con tre comandi:
+
+```
+/plugin marketplace add itsrob00/devflow
+/plugin install devflow@devflow
+/devflow:setup
+```
+
+## Crediti
+
+devflow è un livello di orchestrazione. Le skill che fanno il lavoro vero sono le [skill di Matt Pocock](https://github.com/mattpocock/skills) e pstack di Lauren Tan (nato in [cursor/plugins](https://github.com/cursor/plugins), con un mirror su [backnotprop/pstack](https://github.com/backnotprop/pstack)), entrambe con licenza MIT. devflow è il mio modo di farle lavorare insieme.

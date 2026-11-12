@@ -6,7 +6,9 @@ import {
   checkResumePdf,
   fingerprintResume,
   RENDER_RECIPE,
+  resumePdfEntries,
   saveResumePdf,
+  type ResumePdfEntry,
 } from "./resume-fingerprint.mts";
 import {
   applyPrivateDetails,
@@ -15,9 +17,10 @@ import {
   type PrivateDetails,
 } from "./resume-private.mts";
 
-// `npm run resume:pdf [-- --force]`: builds the site, prints /resume with Playwright's Chromium and
-// writes public/Rob-Resume.pdf plus its lock. Runs on Rob's machine only: Vercel's build image can't run
-// Chromium, and the prebuild check only reads the lock. Needs `npx playwright install chromium` once.
+// `npm run resume:pdf [-- --force]`: builds the site, prints each published Language version's Résumé
+// with Playwright's Chromium and writes its PDF plus its lock. Runs on Rob's machine only: Vercel's build
+// image can't run Chromium, and the prebuild check only reads the locks. Needs `npx playwright install
+// chromium` once.
 
 const root = process.cwd();
 const node = process.execPath;
@@ -31,10 +34,14 @@ try {
   process.exit(1);
 }
 
+const entries = resumePdfEntries(root);
+
 // Every fingerprint key but the print recipe is a file.
-const inputFiles = [...fingerprintResume(root).keys()].filter((key) =>
-  fs.existsSync(path.join(root, key)),
-);
+const inputFiles = [
+  ...new Set(
+    entries.flatMap((entry) => [...fingerprintResume(root, entry).keys()]),
+  ),
+].filter((key) => fs.existsSync(path.join(root, key)));
 
 // Vercel builds only what's committed, so a lock that hashes an untracked draft fails every deploy.
 const untracked = execFileSync(
@@ -64,13 +71,18 @@ execFileSync(
 );
 
 // Chromium stamps every PDF with the time, so re-rendering unchanged inputs would only churn git.
-if (!process.argv.includes("--force") && !checkResumePdf(root).stale) {
-  console.log("Résumé PDF is up to date (pass -- --force to re-render).");
+const stale = process.argv.includes("--force")
+  ? entries
+  : entries.filter((entry) => checkResumePdf(root, entry).stale);
+if (stale.length === 0) {
+  console.log("Résumé PDFs are up to date (pass -- --force to re-render).");
   process.exit(0);
 }
 
 // Hashed before the build, so the lock never claims newer inputs than the render saw.
-const inputs = fingerprintResume(root);
+const inputs = new Map(
+  stale.map((entry) => [entry, fingerprintResume(root, entry)]),
+);
 
 // `next build`, not `npm run build`: its prebuild is the check this script is about to satisfy.
 execFileSync(
@@ -82,25 +94,30 @@ execFileSync(
 );
 
 assertUnpublished(root, path.join(root, "out"), details);
-const pdf = await render(path.join(root, "out"), details);
+const pdfs = new Map<ResumePdfEntry, Uint8Array>();
+for (const entry of stale)
+  pdfs.set(entry, await render(path.join(root, "out"), entry, details));
 
-if (!sameFingerprint(inputs, fingerprintResume(root))) {
-  throw new Error(
-    "A Résumé input changed while the PDF was rendering. Run `npm run resume:pdf` again.",
-  );
+for (const [entry, fingerprint] of inputs) {
+  if (!sameFingerprint(fingerprint, fingerprintResume(root, entry))) {
+    throw new Error(
+      "A Résumé input changed while the PDF was rendering. Run `npm run resume:pdf` again.",
+    );
+  }
 }
-saveResumePdf(root, inputs, pdf);
-console.log(
-  "Wrote public/Rob-Resume.pdf and app/resume/resume-pdf.lock. Commit both.",
-);
+for (const [entry, fingerprint] of inputs) {
+  saveResumePdf(root, entry, fingerprint, pdfs.get(entry)!);
+  console.log(`Wrote ${entry.pdf} and ${entry.lock}. Commit both.`);
+}
 
 /**
- * Prints out/resume.html. Requests are answered from out/ (clean URLs, as serve and Vercel do), so
+ * Prints out/<code>/resume.html. Requests are answered from out/ (clean URLs, as serve and Vercel do), so
  * there's no server, port or child process to clean up. A font or stylesheet that's missing fails the
  * render: a PDF in a fallback font must never be written.
  */
 async function render(
   outDir: string,
+  entry: ResumePdfEntry,
   details: PrivateDetails,
 ): Promise<Uint8Array> {
   const browser = await chromium.launch();
@@ -122,7 +139,9 @@ async function render(
       media: RENDER_RECIPE.media,
       colorScheme: RENDER_RECIPE.colorScheme,
     });
-    await page.goto("http://localhost/resume", { waitUntil: "networkidle" });
+    await page.goto(`http://localhost${entry.path}`, {
+      waitUntil: "networkidle",
+    });
     // Before the fonts settle, in case the full name needs a glyph the page didn't use.
     await applyPrivateDetails(page, details);
     // Playwright's page.pdf() doesn't wait for web fonts itself.

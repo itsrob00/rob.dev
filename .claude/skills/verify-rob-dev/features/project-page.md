@@ -4,7 +4,7 @@ Each Work card on the home page opens that Project's own page: a write-up with w
 
 ## Sub-features
 
-- `project-open` a Work card opens `/projects/<slug>`.
+- `project-open` a Work card opens `/en/projects/<slug>`.
 - `project-back` the page links back home.
 - `project-repo-preview` the page ends with a Repo preview linking to GitHub in a new tab.
 - `project-not-public` a Project with no link shows no Repository, Live site or Repo preview links.
@@ -12,7 +12,7 @@ Each Work card on the home page opens that Project's own page: a write-up with w
 ## How to get to it (user POV)
 
 - Choose the `devflow` or `Exolab redesign` card in Work on `/`.
-- Open `/projects/devflow` or `/projects/exolab-redesign` directly.
+- Open `/en/projects/devflow` or `/en/projects/exolab-redesign` directly.
 
 ## Driving it with verify.mjs
 

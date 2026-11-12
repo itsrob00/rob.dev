@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = 3100;
+const port = Number(process.env.E2E_PORT ?? 3100);
 
 export default defineConfig({
   testDir: "e2e",
@@ -14,7 +14,7 @@ export default defineConfig({
   // Smoke runs against the static export, so `npm run build` must run first.
   webServer: {
     command: `npm run preview -- -l ${port} -L`,
-    url: `http://localhost:${port}`,
+    url: `http://localhost:${port}/en`,
     reuseExistingServer: !process.env.CI,
   },
 });

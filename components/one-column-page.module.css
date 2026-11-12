@@ -4,7 +4,7 @@
   padding: 64px 32px 160px;
 }
 
-/* The links around the content: "← Rob" and the Privacy link. */
+/* The chrome around the content: "← Rob" and the language menu. */
 .chrome {
   color: var(--muted);
   font-family: var(--font-mono);
@@ -22,6 +22,8 @@
 
 .footer {
   margin-top: 96px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
 }
 
 @media (max-width: 560px) {

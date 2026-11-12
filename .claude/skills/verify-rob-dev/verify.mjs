@@ -9,6 +9,7 @@ const ROOT = execSync("git rev-parse --show-toplevel").toString().trim();
 const DIR = path.join(ROOT, ".verify");
 const STATE = path.join(DIR, "state.json");
 const KNOWN_PREFETCH_404 = /\/__next\.[^/]+\.__PAGE__\.txt/;
+const HOME = "/en";
 
 const [command, ...rest] = process.argv.slice(2);
 const positional = [];
@@ -53,14 +54,14 @@ async function launch() {
     fail(
       `an instance from this checkout is already up at ${existing.url} (pid ${existing.pid}); run stop first`,
     );
-  if (await answers(`http://localhost:${port}`))
+  if (await answers(`http://localhost:${port}${HOME}`))
     fail(
       `port ${port} already answers and isn't ours; pick another with --port`,
     );
   if (!flags["no-build"])
     execSync("npm run build", { cwd: ROOT, stdio: "inherit" });
-  if (!fs.existsSync(path.join(ROOT, "out", "index.html")))
-    fail("out/index.html missing: build first");
+  if (!fs.existsSync(path.join(ROOT, "out", "en.html")))
+    fail("out/en.html missing: build first");
 
   fs.mkdirSync(DIR, { recursive: true });
   const log = fs.openSync(path.join(DIR, "serve.log"), "w");
@@ -78,17 +79,17 @@ async function launch() {
   child.unref();
 
   const url = `http://localhost:${port}`;
-  for (let tries = 0; tries < 50 && !(await answers(url)); tries++)
+  for (let tries = 0; tries < 50 && !(await answers(url + HOME)); tries++)
     await new Promise((resolve) => setTimeout(resolve, 200));
-  if (!(await answers(url)))
-    fail(`serve did not answer at ${url}; see .verify/serve.log`);
+  if (!(await answers(url + HOME)))
+    fail(`serve did not answer at ${url + HOME}; see .verify/serve.log`);
 
   const state = {
     pid: child.pid,
     port,
     url,
     head: head(),
-    builtAt: fs.statSync(path.join(ROOT, "out", "index.html")).mtimeMs,
+    builtAt: fs.statSync(path.join(ROOT, "out", "en.html")).mtimeMs,
   };
   fs.writeFileSync(STATE, JSON.stringify(state, null, 2));
   console.log(`READY ${url} pid=${child.pid} head=${state.head}`);
@@ -99,10 +100,10 @@ async function doctor() {
   if (!state) fail("no instance: run launch");
   const problems = [];
   if (!alive(state.pid)) problems.push(`pid ${state.pid} is gone`);
-  const html = await answers(state.url);
-  if (!html) problems.push(`${state.url} does not answer`);
+  const html = await answers(state.url + HOME);
+  if (!html) problems.push(`${state.url + HOME} does not answer`);
   else if (!/<h1[^>]*>Rob<\/h1>/.test(html))
-    problems.push(`${state.url} answers but isn't rob.dev's home page`);
+    problems.push(`${state.url + HOME} answers but isn't rob.dev's home page`);
   if (state.head !== head())
     problems.push(`built at ${state.head}, checkout is at ${head()}: relaunch`);
   const dirty = execSync("git status --porcelain", { cwd: ROOT })
@@ -132,7 +133,8 @@ async function shot() {
     fail(
       `route "${raw}" looks rewritten by Git Bash: pass it without the leading slash (resume, projects/devflow) or omit it for home`,
     );
-  const route = "/" + raw.replace(/^\/+/, "");
+  const rest = raw.replace(/^\/+/, "");
+  const route = `/${flags.lang ?? "en"}${rest && "/"}${rest}`;
   const name = flags.name ?? "shot";
   const theme = flags.theme ?? "dark";
   const width = Number(flags.width ?? 1280);

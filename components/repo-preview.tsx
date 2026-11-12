@@ -1,11 +1,15 @@
+import { dictionary } from "@/lib/dictionaries";
+import type { LanguageCode } from "@/lib/language-versions";
 import type { Project } from "@/lib/projects";
 import { getRepoPreview } from "@/lib/repo-previews";
 import { Anchor } from "./anchor";
 import styles from "./repo-preview.module.css";
 
 export function RepoPreviewCard({
+  lang,
   project,
 }: {
+  lang: LanguageCode;
   project: Pick<Project, "slug" | "links">;
 }) {
   const preview = getRepoPreview(project);
@@ -14,7 +18,7 @@ export function RepoPreviewCard({
     <Anchor
       className={styles.card}
       href={preview.href}
-      aria-label={`${preview.name} on GitHub`}
+      aria-label={dictionary[lang].project.repoPreview(preview.name)}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

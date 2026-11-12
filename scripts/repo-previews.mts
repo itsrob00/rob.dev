@@ -127,11 +127,14 @@ if (import.meta.main) {
     await site.import<typeof import("../lib/projects.ts")>(
       "../lib/projects.ts",
     );
+  const { DEFAULT_LANGUAGE_VERSION } = await site.import<
+    typeof import("../lib/language-versions.ts")
+  >("../lib/language-versions.ts");
   const { repoTargets, saveRepoPreviews } = await site.import<
     typeof import("../lib/repo-previews.ts")
   >("../lib/repo-previews.ts");
   try {
-    const targets = repoTargets(getProjects());
+    const targets = repoTargets(getProjects(DEFAULT_LANGUAGE_VERSION.code));
     const report = saveRepoPreviews(await snapshotRepos(targets, fetch));
     for (const file of report.written) console.log(`Wrote ${file}`);
     for (const file of report.removed) {

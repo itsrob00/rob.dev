@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { absoluteUrl, sitemapUrls } from "../lib/sitemap";
+import { absoluteUrl, sitemapEntries } from "../lib/sitemap";
 
 describe("absoluteUrl", () => {
   test("is the bare origin for the home page, with no trailing slash", () => {
@@ -13,17 +13,34 @@ describe("absoluteUrl", () => {
   });
 });
 
-describe("sitemapUrls", () => {
-  test("lists home, the Résumé, then every Project, as absolute URLs", () => {
+describe("sitemapEntries", () => {
+  test("lists home, the Résumé, then every Project in each published Language version, as absolute URLs", () => {
     const projects = [
       { href: "/projects/newest" as const },
       { href: "/projects/older" as const },
     ];
-    expect(sitemapUrls(projects)).toEqual([
-      "https://itsrob.dev",
-      "https://itsrob.dev/resume",
-      "https://itsrob.dev/projects/newest",
-      "https://itsrob.dev/projects/older",
+    expect(sitemapEntries(projects).map((entry) => entry.url)).toEqual([
+      "https://itsrob.dev/en",
+      "https://itsrob.dev/en/resume",
+      "https://itsrob.dev/en/projects/newest",
+      "https://itsrob.dev/en/projects/older",
+      "https://itsrob.dev/it",
+      "https://itsrob.dev/it/resume",
+      "https://itsrob.dev/it/projects/newest",
+      "https://itsrob.dev/it/projects/older",
     ]);
+  });
+
+  test("gives each page its alternates, with x-default at the bare domain", () => {
+    const [, englishResume, , italianResume] = sitemapEntries([]);
+    for (const resume of [englishResume, italianResume]) {
+      expect(resume.alternates).toEqual({
+        languages: {
+          en: "https://itsrob.dev/en/resume",
+          it: "https://itsrob.dev/it/resume",
+          "x-default": "https://itsrob.dev",
+        },
+      });
+    }
   });
 });

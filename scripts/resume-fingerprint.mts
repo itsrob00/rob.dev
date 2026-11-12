@@ -2,8 +2,8 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-// The Résumé fingerprint: the sha256 of every file /resume is built from, so the committed PDF can
-// never silently drift from the page. Chromium's PDF bytes change on every render (timestamps), so
+// The Résumé fingerprint: the sha256 of every file a Language version's Résumé is built from, so its
+// committed PDF can never silently drift from the page. Chromium's PDF bytes change on every render (timestamps), so
 // the inputs are hashed, never a fresh PDF. The input set is derived from the page's imports, so the
 // build check, the commit hook and the tests can't disagree about it. Plain Node runs this file
 // (prebuild on Vercel has no tsx), so it imports only node: builtins, never repo modules.
@@ -13,6 +13,30 @@ export type Fingerprint = ReadonlyMap<string, string>;
 
 export type ResumePdfCheck =
   { stale: false } | { stale: true; message: string };
+
+export type ResumePdfEntry = {
+  language: string;
+  route: string;
+  path: string;
+  pdf: string;
+  lock: string;
+};
+
+/** Repo-relative. The lock sits beside the page it certifies, outside public/ so it isn't served. */
+export function resumePdfEntries(root: string): ResumePdfEntry[] {
+  return listedLanguageVersions(root)
+    .filter((version) => version.published)
+    .map(({ code, pdfSuffix }) => ({
+      language: code,
+      route: ROUTE,
+      path: `/${ROUTE.split("/")
+        .slice(1)
+        .map((segment) => (segment === "[lang]" ? code : segment))
+        .join("/")}`,
+      pdf: `public/Roberto-Prats-${pdfSuffix}.pdf`,
+      lock: `${ROUTE}/resume-pdf.${code}.lock`,
+    }));
+}
 
 /**
  * How `npm run resume:pdf` prints /resume. It's hashed too, so changing a print option makes the PDF
@@ -25,8 +49,11 @@ export const RENDER_RECIPE = {
 } as const;
 
 /** The fingerprint of the Résumé's inputs (not of the PDF). */
-export function fingerprintResume(root: string): Fingerprint {
-  const entries = resumeInputs(root).map(
+export function fingerprintResume(
+  root: string,
+  entry: ResumePdfEntry,
+): Fingerprint {
+  const entries = resumeInputs(root, entry).map(
     (input) => [input.path, sha256(read(root, input))] as const,
   );
   entries.push(["recipe", sha256(Buffer.from(JSON.stringify(RENDER_RECIPE)))]);
@@ -40,30 +67,42 @@ export function fingerprintResume(root: string): Fingerprint {
  */
 export function checkResumePdf(
   root: string,
+  entry: ResumePdfEntry,
   touched?: readonly string[],
 ): ResumePdfCheck {
-  const inputs = fingerprintResume(root);
+  const inputs = fingerprintResume(root, entry);
   if (touched) {
     const relevant = touched
       .map((file) => toRepoPath(root, file))
       .some(
-        (file) =>
-          inputs.has(file) || file === RESUME_PDF || file === RESUME_LOCK,
+        (file) => inputs.has(file) || file === entry.pdf || file === entry.lock,
       );
     if (!relevant) return { stale: false };
   }
-  const pdfFile = path.join(root, RESUME_PDF);
+  const pdfFile = path.join(root, entry.pdf);
   const pdf = fs.existsSync(pdfFile) ? fs.readFileSync(pdfFile) : undefined;
-  const changes = diff(readLock(root), withPdf(inputs, pdf));
+  const changes = diff(readLock(root, entry), withPdf(entry, inputs, pdf));
   if (changes.length === 0) return { stale: false };
   return {
     stale: true,
     message: [
-      "The Résumé PDF is out of date.",
+      `The Résumé PDF ${entry.pdf} is out of date.`,
       ...changes.map(({ kind, file }) => `  ${kind.padEnd(8)} ${file}`),
-      `Run \`npm run resume:pdf\`, then commit ${RESUME_PDF} and ${RESUME_LOCK}.`,
+      `Run \`npm run resume:pdf\`, then commit ${entry.pdf} and ${entry.lock}.`,
     ].join("\n"),
   };
+}
+
+export function checkResumePdfs(
+  root: string,
+  touched?: readonly string[],
+): ResumePdfCheck {
+  const messages = resumePdfEntries(root).flatMap((entry) => {
+    const check = checkResumePdf(root, entry, touched);
+    return check.stale ? [check.message] : [];
+  });
+  if (messages.length === 0) return { stale: false };
+  return { stale: true, message: messages.join("\n\n") };
 }
 
 /**
@@ -72,25 +111,22 @@ export function checkResumePdf(
  */
 export function saveResumePdf(
   root: string,
+  entry: ResumePdfEntry,
   inputs: Fingerprint,
   pdf: Uint8Array,
 ): void {
-  fs.mkdirSync(path.dirname(path.join(root, RESUME_PDF)), { recursive: true });
-  fs.writeFileSync(path.join(root, RESUME_PDF), pdf);
-  const lines = [...withPdf(inputs, pdf)].map(
+  fs.mkdirSync(path.dirname(path.join(root, entry.pdf)), { recursive: true });
+  fs.writeFileSync(path.join(root, entry.pdf), pdf);
+  const lines = [...withPdf(entry, inputs, pdf)].map(
     ([file, hash]) => `${hash}  ${file}`,
   );
   fs.writeFileSync(
-    path.join(root, RESUME_LOCK),
+    path.join(root, entry.lock),
     [...LOCK_HEADER, ...lines, ""].join("\n"),
   );
 }
 
 // ---- internals ----------------------------------------------------------------------------
-
-/** Repo-relative. The lock sits beside the page it certifies, outside public/ so it isn't served. */
-const RESUME_PDF = "public/Rob-Resume.pdf";
-const RESUME_LOCK = "app/resume/resume-pdf.lock";
 
 const LOCK_HEADER = [
   "# Written by `npm run resume:pdf`. The build fails when a line stops matching: run it again.",
@@ -100,11 +136,12 @@ const LOCK_HEADER = [
 type Change = { kind: "changed" | "new" | "removed"; file: string };
 
 function withPdf(
+  entry: ResumePdfEntry,
   inputs: Fingerprint,
   pdf: Uint8Array | undefined,
 ): Fingerprint {
   const entries = [...inputs];
-  if (pdf) entries.push([RESUME_PDF, sha256(Buffer.from(pdf))]);
+  if (pdf) entries.push([entry.pdf, sha256(Buffer.from(pdf))]);
   return sorted(entries);
 }
 
@@ -124,8 +161,8 @@ function diff(expected: Fingerprint, actual: Fingerprint): Change[] {
 }
 
 /** An empty fingerprint when there's no lock, so every input shows as new. */
-function readLock(root: string): Fingerprint {
-  const file = path.join(root, RESUME_LOCK);
+function readLock(root: string, entry: ResumePdfEntry): Fingerprint {
+  const file = path.join(root, entry.lock);
   if (!fs.existsSync(file)) return new Map();
   const entries = fs
     .readFileSync(file, "utf8")
@@ -156,7 +193,37 @@ function compare(a: string, b: string): number {
 }
 
 /** The route whose PDF this is. Its entries are every layout and template above it, then its page. */
-const ROUTE = "app/resume";
+const ROUTE = "app/[lang]/resume";
+
+const LANGUAGE_LIST = "lib/language-versions.ts";
+
+type ListedLanguageVersion = {
+  code: string;
+  pdfSuffix: string;
+  published: boolean;
+};
+
+function listedLanguageVersions(root: string): ListedLanguageVersion[] {
+  const text = fs.readFileSync(path.join(root, LANGUAGE_LIST), "utf8");
+  const versions = [...text.matchAll(/\{[^{}]*\}/g)].flatMap(([object]) => {
+    const code = /\bcode:\s*["']([^"']+)["']/.exec(object)?.[1];
+    if (!code) return [];
+    const pdfSuffix = /\bpdfSuffix:\s*["']([^"']+)["']/.exec(object)?.[1];
+    const published = /\bpublished:\s*(true|false)\b/.exec(object)?.[1];
+    if (!pdfSuffix || !published) {
+      throw new Error(
+        `${LANGUAGE_LIST}: "${code}" needs a literal pdfSuffix and published for the Résumé PDFs.`,
+      );
+    }
+    return [{ code, pdfSuffix, published: published === "true" }];
+  });
+  if (versions.length === 0) {
+    throw new Error(
+      `${LANGUAGE_LIST} lists no Language version the Résumé PDFs can read.`,
+    );
+  }
+  return versions;
+}
 
 /**
  * Folders the Résumé's code reads through fs, which no import reveals: FOLDER in lib/projects.ts
@@ -174,12 +241,20 @@ type Input = { path: string; frontmatterOnly: boolean };
  */
 const LOCAL_SPECIFIER = /["']((?:\.\.?|@)\/[^"'\r\n]*)["']/g;
 
-function resumeInputs(root: string): Input[] {
+function resumeInputs(root: string, entry: ResumePdfEntry): Input[] {
+  const others = new Set(
+    listedLanguageVersions(root)
+      .map((version) => version.code)
+      .filter((code) => code !== entry.language),
+  );
+  const ofAnotherLanguage = (file: string) =>
+    file.split("/").some((segment) => others.has(segment)) ||
+    others.has(path.posix.basename(file).split(".")[0]);
   const seen = new Set<string>();
-  const queue = routeEntries(root);
+  const queue = routeEntries(root, entry.route);
   while (queue.length > 0) {
     const file = queue.shift()!;
-    if (seen.has(file)) continue;
+    if (seen.has(file) || ofAnotherLanguage(file)) continue;
     seen.add(file);
     const bytes = fs.readFileSync(path.join(root, file));
     if (isBinary(bytes)) continue;
@@ -194,22 +269,26 @@ function resumeInputs(root: string): Input[] {
     frontmatterOnly: false,
   }));
   for (const { dir, extension } of RUNTIME_READS) {
-    for (const name of fs.readdirSync(path.join(root, dir))) {
-      if (name.endsWith(extension))
-        inputs.push({ path: `${dir}/${name}`, frontmatterOnly: true });
+    for (const name of fs.readdirSync(path.join(root, dir), {
+      encoding: "utf8",
+      recursive: true,
+    })) {
+      const file = `${dir}/${name.split(path.sep).join("/")}`;
+      if (file.endsWith(extension) && !ofAnotherLanguage(file))
+        inputs.push({ path: file, frontmatterOnly: true });
     }
   }
   return inputs;
 }
 
-function routeEntries(root: string): string[] {
-  const segments = ROUTE.split("/");
+function routeEntries(root: string, route: string): string[] {
+  const segments = route.split("/");
   const entries: string[] = [];
   for (let depth = 1; depth <= segments.length; depth++) {
     const dir = segments.slice(0, depth).join("/");
     entries.push(`${dir}/layout.tsx`, `${dir}/template.tsx`);
   }
-  entries.push(`${ROUTE}/page.tsx`);
+  entries.push(`${route}/page.tsx`);
   return entries.filter((file) => fs.existsSync(path.join(root, file)));
 }
 
@@ -266,11 +345,11 @@ function sha256(bytes: Buffer): string {
 
 // `npm run build`'s prebuild: fails the build (Vercel, CI, local) when the PDF is stale.
 if (import.meta.main) {
-  const check = checkResumePdf(process.cwd());
+  const check = checkResumePdfs(process.cwd());
   if (check.stale) {
     console.error(check.message);
     process.exitCode = 1;
   } else {
-    console.log("Résumé PDF is up to date.");
+    console.log("Résumé PDFs are up to date.");
   }
 }

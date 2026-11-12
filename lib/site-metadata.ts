@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { profile } from "../content/profile";
-import type { Project } from "./projects";
+import { profile, profileCopy } from "../content/profile";
+import {
+  alternatesFor,
+  pathIn,
+  type LanguageCode,
+  type LanguageVersion,
+  type SitePath,
+} from "./language-versions";
+import { projectKicker, type Project } from "./projects";
 
 // What each page tells search engines and link previews. The root layout and the Résumé page import
 // this file, so it's a Résumé fingerprint input: keep it to page metadata and card copy. Drawing the
 // images lives in share-images.tsx, which the Résumé never imports, so restyling a card never makes
 // the PDF stale. The fingerprint reads quoted local paths in this file as imports, so quote none here
 // but real files.
-
-/** A route on this site: "/" or a path with no trailing slash. */
-type Path = "/" | `/${string}`;
 
 /** Every generated sharing image. The renderer and the og:image tags both read it. */
 export const SHARE_IMAGE = {
@@ -34,31 +38,34 @@ export type ShareCard = {
 };
 
 /**
- * The root layout's metadata: only the URL base and the titles. No description, canonical or
- * openGraph, because whatever the layout sets also lands on the 404 page, which must claim no URL.
- * (The 404 still picks up home's image through the file convention; it's noindex, so that's harmless.)
+ * The root layout's metadata: only the URL base and the titles. Each page sets its own description,
+ * canonical and openGraph through pageMetadata. The 404 is outside the layout and spells its own.
  */
-export const rootMetadata: Metadata = {
-  metadataBase: new URL(profile.site),
-  title: {
-    // Home's title (a template doesn't reach a page in the layout's own segment) and the 404's.
-    default: `${profile.name} | ${profile.role}`,
-    template: `%s | ${profile.name}`,
-  },
-};
+export function rootMetadata(lang: LanguageCode): Metadata {
+  return {
+    metadataBase: new URL(profile.site),
+    title: {
+      // Home's title: a template doesn't reach a page in the layout's own segment.
+      default: `${profile.name} | ${profileCopy[lang].role}`,
+      template: `%s | ${profile.name}`,
+    },
+  };
+}
 
 /** Name and role. Home's image, which the Résumé reuses. */
-export const homeCard: ShareCard = {
-  path: "/",
-  title: profile.name,
-  text: profile.role,
-};
+export function homeCard(lang: LanguageCode): ShareCard {
+  return {
+    path: "/",
+    title: profile.name,
+    text: profileCopy[lang].role,
+  };
+}
 
 /** A Project's title and summary, under its kicker. */
-export function projectCard(project: Project): ShareCard {
+export function projectCard(project: Project, lang: LanguageCode): ShareCard {
   return {
     path: project.href,
-    kicker: project.kicker,
+    kicker: projectKicker(project, lang),
     title: project.title,
     text: project.summary,
   };
@@ -75,26 +82,29 @@ export function cardAlt(card: ShareCard): string {
  * twitter tag (a large-image card) from the page's title, its description and this image.
  */
 export function pageMetadata(page: {
+  version: LanguageVersion;
   /** The page's own route: its canonical URL and og:url. */
-  path: Path;
+  path: SitePath;
   /** Omitted on home only, which takes the layout's default. The rest get the layout's template. */
   title?: string;
   /** Required: the layout sets none, so a page without one would have no description at all. */
   description: string;
   card: ShareCard;
 }): Metadata {
+  const { code, ogLocale } = page.version;
+  const url = pathIn(code, page.path);
   return {
     ...(page.title !== undefined && { title: page.title }),
     description: page.description,
-    alternates: { canonical: page.path },
+    alternates: { canonical: url, languages: alternatesFor(page.path) },
     openGraph: {
       siteName: profile.name,
-      locale: "en_US",
+      locale: ogLocale,
       type: "website",
-      url: page.path,
+      url,
       images: [
         {
-          url: shareImagePath(page.card.path),
+          url: shareImagePath(pathIn(code, page.card.path)),
           alt: cardAlt(page.card),
           width: SHARE_IMAGE.width,
           height: SHARE_IMAGE.height,
@@ -110,6 +120,6 @@ export function pageMetadata(page: {
  * convention because the convention's alt is one string per file, and each Project needs its own.
  * e2e/metadata.spec.ts fetches every og:image, so a wrong path fails CI.
  */
-function shareImagePath(path: CardPath): string {
-  return `${path === "/" ? "" : path}/opengraph-image`;
+function shareImagePath(path: SitePath): string {
+  return `${path}/opengraph-image`;
 }

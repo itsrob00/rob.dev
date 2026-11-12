@@ -10,7 +10,7 @@ const profile = {
 } as const;
 
 describe("contactItems", () => {
-  const items = contactItems(profile, "Remote (CET)");
+  const items = contactItems(profile, "Remote (CET)", "Email");
   const label = (medium: "screen" | "print") =>
     items.flatMap((item) => {
       if (item.kind === "text") return [item.text];
@@ -52,32 +52,43 @@ describe("contactItems", () => {
 
 describe("formatEducationDates", () => {
   test("shows a course still under way as in progress", () => {
-    expect(formatEducationDates({ kind: "in-progress" })).toBe("In progress");
+    expect(formatEducationDates({ kind: "in-progress" }, "en")).toBe(
+      "In progress",
+    );
+    expect(formatEducationDates({ kind: "in-progress" }, "it")).toBe(
+      "In corso",
+    );
   });
 
   test("shows a month range with the site's month precision", () => {
     expect(
-      formatEducationDates({
-        kind: "months",
-        start: "2022-09",
-        end: "2023-04",
-      }),
+      formatEducationDates(
+        {
+          kind: "months",
+          start: "2022-09",
+          end: "2023-04",
+        },
+        "en",
+      ),
     ).toBe("Sep 2022 – Apr 2023");
   });
 
   test("shows a completed qualification as its year", () => {
-    expect(formatEducationDates({ kind: "completed", year: 2019 })).toBe(
+    expect(formatEducationDates({ kind: "completed", year: 2019 }, "en")).toBe(
       "2019",
     );
   });
 
   test("refuses a month range that ends before it starts", () => {
     expect(() =>
-      formatEducationDates({
-        kind: "months",
-        start: "2023-04",
-        end: "2022-09",
-      }),
+      formatEducationDates(
+        {
+          kind: "months",
+          start: "2023-04",
+          end: "2022-09",
+        },
+        "en",
+      ),
     ).toThrow(RangeError);
   });
 });

@@ -1,5 +1,9 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
+import { GaetaClock } from "../components/gaeta-clock";
 import { formatGaetaTime } from "../lib/clock";
+import { dictionary } from "../lib/dictionaries";
 
 describe("formatGaetaTime", () => {
   test("shows winter time as CET, one hour ahead of UTC", () => {
@@ -22,5 +26,20 @@ describe("formatGaetaTime", () => {
       "02:59 CEST",
     );
     expect(formatGaetaTime(new Date("2026-10-25T01:00:00Z"))).toBe("02:00 CET");
+  });
+});
+
+describe("GaetaClock", () => {
+  const prerender = (lang: "en" | "it") =>
+    renderToStaticMarkup(
+      createElement(GaetaClock, { place: dictionary[lang].inGaeta }),
+    );
+
+  test("says where the time is, in English", () => {
+    expect(prerender("en")).toBe("<p>--:-- in Gaeta</p>");
+  });
+
+  test('says "a Gaeta" in Italian', () => {
+    expect(prerender("it")).toBe("<p>--:-- a Gaeta</p>");
   });
 });

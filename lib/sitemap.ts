@@ -1,4 +1,11 @@
+import type { MetadataRoute } from "next";
 import { profile } from "../content/profile";
+import {
+  alternatesFor,
+  pathIn,
+  publishedLanguageVersions,
+  type SitePath,
+} from "./language-versions";
 import type { Project } from "./projects";
 
 // Absolute URLs for the files Next's metadataBase doesn't reach: the sitemap, robots and JSON-LD.
@@ -8,15 +15,26 @@ import type { Project } from "./projects";
 /**
  * The origin plus `path`, with no trailing slash on home: what Next renders for a canonical "/".
  */
-export function absoluteUrl(path: "/" | `/${string}`): string {
+export function absoluteUrl(path: SitePath): string {
   return path === "/" ? profile.site : `${profile.site}${path}`;
 }
 
-/** Every page on the site: home, the Résumé, then each Project in the order given. */
-export function sitemapUrls(
+/** Every page in each published Language version: home, the Résumé, then each Project in the order given. */
+export function sitemapEntries(
   projects: readonly Pick<Project, "href">[],
-): string[] {
-  return ["/" as const, "/resume" as const, ...projects.map((p) => p.href)].map(
-    absoluteUrl,
+): MetadataRoute.Sitemap {
+  const paths: SitePath[] = ["/", "/resume", ...projects.map((p) => p.href)];
+  return publishedLanguageVersions().flatMap(({ code }) =>
+    paths.map((path) => ({
+      url: absoluteUrl(pathIn(code, path)),
+      alternates: {
+        languages: Object.fromEntries(
+          Object.entries(alternatesFor(path)).map(([language, href]) => [
+            language,
+            absoluteUrl(href),
+          ]),
+        ),
+      },
+    })),
   );
 }

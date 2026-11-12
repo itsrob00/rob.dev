@@ -41,11 +41,30 @@ test.beforeEach(async ({ page }) => {
 test("home loads with no console errors", async ({ page }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
   await expect(page.getByText(/^\d\d:\d\d CES?T in Gaeta$/)).toBeVisible();
+  await page.waitForLoadState("networkidle");
+
+  expect(errors).toEqual([]);
+});
+
+test("the Italian home loads in Italian with no console errors", async ({
+  page,
+}) => {
+  const errors = trackErrors(page);
+
+  await page.goto("/it");
+  await expect(page.locator("html")).toHaveAttribute("lang", "it");
+  await expect(page.getByText(/^\d\d:\d\d CES?T a Gaeta$/)).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("heading", { level: 2 }),
+  ).toHaveText(["Chi sono", "Lavori", "Esperienza"]);
+  await expect(
+    page.getByRole("button", { name: "Passa al tema chiaro" }),
+  ).toBeVisible();
   await page.waitForLoadState("networkidle");
 
   expect(errors).toEqual([]);
@@ -57,7 +76,7 @@ test("theme starts dark, switches to light and stays light", async ({
   const html = page.locator("html");
   const body = page.locator("body");
 
-  await page.goto("/");
+  await page.goto("/en");
   await expect(html).toHaveAttribute("data-theme", "dark");
   await expect(body).toHaveCSS("background-color", "rgb(16, 15, 15)");
 
@@ -67,23 +86,113 @@ test("theme starts dark, switches to light and stays light", async ({
 
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
-  await expect(
-    page.getByRole("button", { name: "Switch to dark theme" }),
-  ).toBeVisible();
+  const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+  await expect(toDark).toBeVisible();
+  expect(await animations(toDark)).toBe(0);
+  expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
 
   // With React's code blocked, only the head script can apply the choice: proof it lands before paint.
-  await page.route("**/_next/static/chunks/**", (route) => route.abort());
+  await page.route("**/_next/static/chunks/**/*.js", (route) => route.abort());
   await page.reload();
   await expect(html).toHaveAttribute("data-theme", "light");
+  expect(
+    await visibleGlyphs(page.getByRole("button", { name: /^Switch to/ })),
+  ).toEqual([{ glyph: "☀", whole: true }]);
+});
+
+function visibleGlyphs(button: Locator) {
+  return button.evaluate((root) => {
+    const shown: { glyph: string; whole: boolean }[] = [];
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode;
+      const glyph = text.textContent?.trim();
+      if (!glyph) continue;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      const own = range.getBoundingClientRect();
+      if (own.width === 0 || own.height === 0) continue;
+      let { top, bottom, left, right } = own;
+      for (let node = text.parentElement; node; node = node.parentElement) {
+        if (getComputedStyle(node).overflow !== "visible") {
+          const clip = node.getBoundingClientRect();
+          top = Math.max(top, clip.top);
+          bottom = Math.min(bottom, clip.bottom);
+          left = Math.max(left, clip.left);
+          right = Math.min(right, clip.right);
+        }
+        if (node === root) break;
+      }
+      if (bottom - top > 0 && right - left > 0) {
+        const whole =
+          bottom - top >= own.height - 0.5 && right - left >= own.width - 0.5;
+        shown.push({ glyph, whole });
+      }
+    }
+    return shown;
+  });
+}
+
+function animations(button: Locator) {
+  return button.evaluate(
+    (root) => root.getAnimations({ subtree: true }).length,
+  );
+}
+
+function rollEnd(button: Locator) {
+  return button.evaluate((root) =>
+    Promise.all(
+      root.getAnimations({ subtree: true }).map((roll) => roll.finished),
+    ).then(() => undefined),
+  );
+}
+
+test("the theme switch shows one glyph, and after the roll only the new one", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const toLight = page.getByRole("button", { name: "Switch to light theme" });
+  await expect(toLight).toBeVisible();
+  expect(await visibleGlyphs(toLight)).toEqual([{ glyph: "☾", whole: true }]);
+
+  await toLight.click();
+  const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+  expect(await animations(toDark)).toBeGreaterThan(0);
+  await rollEnd(toDark);
+  expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
+
+  await toDark.click();
+  await rollEnd(toLight);
+  expect(await visibleGlyphs(toLight)).toEqual([{ glyph: "☾", whole: true }]);
+});
+
+test("the theme switch fits a 375px screen and is hidden in print", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/en");
+  const toggle = page.getByRole("button", { name: "Switch to light theme" });
+  await toggle.click();
+  await rollEnd(page.getByRole("button", { name: "Switch to dark theme" }));
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(
+    page.getByRole("button", { name: "Switch to dark theme" }),
+  ).toBeHidden();
 });
 
 test("section nav, contact links, the Résumé link and theme toggle are reachable by keyboard, with visible focus", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
 
   const reached: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 9; i++) {
     await page.keyboard.press("Tab");
     const focused = page.locator(":focus");
     await expect(focused).not.toHaveCSS("outline-style", "none");
@@ -101,13 +210,258 @@ test("section nav, contact links, the Résumé link and theme toggle are reachab
     "GitHub",
     "Résumé",
     "Switch to light theme",
+    "Language: EN",
   ]);
 });
+
+function languageMenu(page: Page, lang: "en" | "it" = "en") {
+  const label = lang === "en" ? "Language" : "Lingua";
+  const nav = page.getByRole("navigation", { name: label });
+  return {
+    nav,
+    pill: nav.getByRole("button", {
+      name: `${label}: ${lang.toUpperCase()}`,
+      exact: true,
+    }),
+    entries: nav.getByRole("link"),
+  };
+}
+
+for (const [lang, name] of [
+  ["en", "Language: EN"],
+  ["it", "Lingua: IT"],
+] as const) {
+  test(`the language menu's pill is named as the language choice, with its visible code in the name, on /${lang}`, async ({
+    page,
+  }) => {
+    await page.goto(`/${lang}`);
+    const pill = page.getByRole("button", { expanded: false }).filter({
+      hasText: lang.toUpperCase(),
+    });
+    await expect(pill).toHaveAccessibleName(name);
+    await expect(pill).toHaveText(new RegExp(`^${lang.toUpperCase()}\\W*$`));
+    await expect(pill).not.toHaveAttribute("aria-haspopup", /.*/);
+  });
+}
+
+test("the language menu opens upward from its pill after the clock and the theme switch, listing each Language version in its own language", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+
+  await pill.click();
+  await expect(pill).toHaveAttribute("aria-expanded", "true");
+  await expect(entries).toHaveText([/^English\s*EN$/, /^Italiano\s*IT$/]);
+  const [english, italian] = [entries.first(), entries.last()];
+  await expect(english).toHaveAttribute("href", "/en");
+  await expect(english).toHaveAttribute("hreflang", "en");
+  await expect(english).toHaveAttribute("lang", "en");
+  await expect(english).toHaveAttribute("aria-current", "page");
+  await expect(english).not.toHaveAttribute("target", /.*/);
+  await expect(italian).toHaveAttribute("href", "/it");
+  await expect(italian).toHaveAttribute("hreflang", "it");
+  await expect(italian).toHaveAttribute("lang", "it");
+  await expect(italian).not.toHaveAttribute("aria-current", /.*/);
+
+  const pillBox = (await pill.boundingBox())!;
+  const listBox = (await english.boundingBox())!;
+  expect(listBox.y + listBox.height).toBeLessThan(pillBox.y);
+
+  const theme = page.getByRole("button", { name: "Switch to light theme" });
+  const clock = page.getByText(/^\d\d:\d\d CES?T in Gaeta$/);
+  const row = await Promise.all(
+    [clock, theme, pill].map(async (item) => (await item.boundingBox())!),
+  );
+  expect(row[0].x).toBeLessThan(row[1].x);
+  expect(row[1].x).toBeLessThan(row[2].x);
+  expect(Math.abs(row[1].y - row[2].y)).toBeLessThan(2);
+});
+
+test("the language menu closes on Escape, returning focus to its pill, and on a click outside it", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+
+  await pill.focus();
+  await page.keyboard.press("Enter");
+  await expect(pill).toHaveAttribute("aria-expanded", "true");
+  await page.keyboard.press("Tab");
+  await expect(entries.first()).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+  await expect(pill).toBeFocused();
+
+  await pill.click();
+  await expect(entries).toHaveCount(2);
+  await page.getByRole("heading", { level: 1 }).click();
+  await expect(pill).toHaveAttribute("aria-expanded", "false");
+  await expect(entries).toHaveCount(0);
+});
+
+test("the language menu links to the section the visitor was reading", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page
+    .getByRole("navigation", { name: "Sections" })
+    .getByRole("link", { name: "Work" })
+    .click();
+  await expect(page).toHaveURL(/\/en#work$/);
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await expect(entries.first()).toHaveAttribute("href", "/en#work");
+  await expect(entries.last()).toHaveAttribute("href", "/it#work");
+});
+
+test("switching language after scrolling to a section, without the section nav, keeps that section", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page.locator("#experience").evaluate((section) => {
+    section.scrollIntoView({ behavior: "instant" });
+  });
+  await expect(
+    page
+      .getByRole("navigation", { name: "Sections" })
+      .getByRole("link", { name: "Experience" }),
+  ).toHaveAttribute("aria-current", "location");
+  expect(new URL(page.url()).hash).toBe("");
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await entries.and(page.locator('[lang="it"]')).click();
+
+  await expect(page).toHaveURL(/\/it#experience$/);
+  await expect(page.locator("#experience-title")).toBeInViewport();
+});
+
+for (const [from, to, route] of [
+  ["en", "it", "#work"],
+  ["it", "en", "#experience"],
+  ["en", "it", "/projects/devflow"],
+  ["it", "en", "/resume"],
+] as const) {
+  test(`picking ${to} on /${from}${route} opens the same page and place in that Language version`, async ({
+    page,
+  }) => {
+    const errors = trackErrors(page);
+    await page.goto(`/${from}${route}`);
+    const { pill, entries } = languageMenu(page, from);
+    await pill.click();
+    await entries.and(page.locator(`[lang="${to}"]`)).click();
+
+    await expect(page).toHaveURL(new RegExp(`/${to}${route}$`));
+    await expect(page.locator("html")).toHaveAttribute("lang", to);
+    await expect(languageMenu(page, to).pill).toBeVisible();
+    if (route.startsWith("#")) {
+      await expect(page.locator(`${route}-title`)).toBeInViewport();
+    }
+    await page.waitForLoadState("networkidle");
+    expect(errors).toEqual([]);
+  });
+}
+
+function dotCentre(nav: Locator) {
+  return nav.evaluate((root) => {
+    const id = root.querySelector("button")!.getAttribute("aria-controls")!;
+    const { top, height } = document
+      .getElementById(id)!
+      .querySelector(":scope > [aria-hidden]")!
+      .getBoundingClientRect();
+    return top + height / 2;
+  });
+}
+
+test("the language menu's dot glides to the picked language before the page changes", async ({
+  page,
+}) => {
+  await page.goto("/en/resume");
+  const { nav, pill, entries } = languageMenu(page);
+  await pill.click();
+  const italian = (await entries.last().boundingBox())!;
+  expect(await dotCentre(nav)).toBeLessThan(italian.y);
+
+  let release = () => {};
+  const held = new Promise<void>((resolve) => (release = resolve));
+  await page.route("**/it/resume", async (route) => {
+    await held;
+    await route.continue();
+  });
+  await entries.last().click();
+  await expect.poll(() => dotCentre(nav)).toBeGreaterThan(italian.y);
+  expect(await dotCentre(nav)).toBeLessThan(italian.y + italian.height);
+  release();
+  await expect(page).toHaveURL(/\/it\/resume$/);
+});
+
+test("picking a language keeps the theme, with no flash", async ({ page }) => {
+  await page.goto("/en");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await page.goto("/en/resume");
+
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await page.route("**/_next/static/chunks/**/*.js", (route) => route.abort());
+  const loaded = page.waitForEvent("load");
+  await entries.last().click();
+  await loaded;
+  await expect(page).toHaveURL(/\/it\/resume$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(246, 244, 240)",
+  );
+});
+
+test("the language menu fits a 375px screen when open, and is hidden in print", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/en");
+  const { pill, entries } = languageMenu(page);
+  await pill.click();
+  await expect(entries.first()).toBeInViewport();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await page.emulateMedia({ media: "print" });
+  await expect(pill).toBeHidden();
+  await expect(entries.first()).toBeHidden();
+});
+
+test("the language menu rises as it opens, and its dot is set to glide", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  const { nav, pill } = languageMenu(page);
+  await pill.click();
+  expect(await animations(nav)).toBeGreaterThan(0);
+  expect(await glideDuration(nav)).not.toBe("0s");
+});
+
+function glideDuration(nav: Locator) {
+  return nav.evaluate((root) => {
+    const id = root.querySelector("button")!.getAttribute("aria-controls")!;
+    const dot = document
+      .getElementById(id)!
+      .querySelector(":scope > [aria-hidden]")!;
+    return getComputedStyle(dot).transitionDuration;
+  });
+}
 
 test("section nav scrolls to a section and marks it as the current one", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Sections" });
   await expect(nav.getByRole("link", { name: "About" })).toHaveAttribute(
     "aria-current",
@@ -130,7 +484,7 @@ test("section nav scrolls to a section and marks it as the current one", async (
 test("section nav marks a section once wheel scrolling brings its heading into the top half of the window", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const nav = page.getByRole("navigation", { name: "Sections" });
   const { width, height } = page.viewportSize()!;
 
@@ -153,7 +507,7 @@ test("section nav marks a section once wheel scrolling brings its heading into t
 test("home sections show About, Experience and Stack from the records", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const main = page.getByRole("main");
 
   await expect(
@@ -216,7 +570,7 @@ function stackChip(page: Page, name: string) {
 test("Stack chips and Project pills show brand marks before their names, hidden from assistive tech", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const stack = page
     .getByRole("region", { name: "Work" })
     .getByRole("list", { name: "Stack" });
@@ -260,7 +614,7 @@ test("Stack chips and Project pills show brand marks before their names, hidden 
     exolabPills.filter({ hasText: "three.js" }).locator("path"),
   ).toHaveCSS("fill", "rgb(74, 222, 128)");
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   await expect(
     page
       .getByRole("list", { name: "Built with" })
@@ -272,7 +626,7 @@ test("Stack chips and Project pills show brand marks before their names, hidden 
 test("Work lists the Projects a visitor can open first, each with its kind and start year", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const work = page.getByRole("region", { name: "Work" });
   await expect(work.getByRole("heading", { level: 3 })).toHaveText([
     "devflow",
@@ -287,7 +641,7 @@ test("Work lists the Projects a visitor can open first, each with its kind and s
 test("pressing a Stack chip dims the Projects that don't use it, until it's pressed again or Esc", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const react = stackChip(page, "React");
   const devflow = workCard(page, "devflow");
   const exolab = workCard(page, "Exolab redesign");
@@ -323,7 +677,7 @@ test("pressing a Stack chip dims the Projects that don't use it, until it's pres
 test("pointing at a Project, with the mouse or the keyboard, dims the chips it doesn't use", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const devflow = workCard(page, "devflow");
 
   await devflow.hover();
@@ -345,7 +699,7 @@ test.describe("on a touch screen", () => {
   test.use({ hasTouch: true });
 
   test("tapping a Stack chip pins its highlight", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en");
     await stackChip(page, "React").tap();
     await expect(stackChip(page, "React")).toHaveAttribute(
       "aria-pressed",
@@ -359,12 +713,12 @@ test("Exolab's page says it's an unofficial concept, with nothing to open yet", 
   page,
 }) => {
   const errors = trackErrors(page);
-  await page.goto("/");
+  await page.goto("/en");
   await workCard(page, "Exolab redesign")
     .getByRole("link", { name: "Exolab redesign" })
     .click();
 
-  await expect(page).toHaveURL(/\/projects\/exolab-redesign$/);
+  await expect(page).toHaveURL(/\/en\/projects\/exolab-redesign$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "Exolab redesign" }),
   ).toBeVisible();
@@ -383,37 +737,61 @@ test("Exolab's page says it's an unofficial concept, with nothing to open yet", 
   expect(errors).toEqual([]);
 });
 
-test("a missing page shows a 404 in the site's look, with a way home", async ({
+test("a missing page shows a 404 in the site's look, in English and Italian, with a way home", async ({
   page,
 }) => {
   const response = await page.goto("/no-such-page");
 
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle("Page not found | Rob");
+  const english = page.locator('section[lang="en"]');
+  const italian = page.locator('section[lang="it"]');
   await expect(
-    page.getByRole("heading", { level: 1, name: "Page not found" }),
+    english.getByRole("heading", { level: 1, name: "Page not found" }),
+  ).toBeVisible();
+  await expect(
+    italian.getByRole("heading", { name: "Pagina non trovata" }),
   ).toBeVisible();
   // Dark by default even though the visitor's OS asks for light (test.use above).
   await expect(page.locator("body")).toHaveCSS(
     "background-color",
     "rgb(16, 15, 15)",
   );
-  await expect(page.getByRole("link", { name: "home page" })).toHaveAttribute(
-    "href",
-    "/",
-  );
+  await expect(
+    english.getByRole("link", { name: "home page" }),
+  ).toHaveAttribute("href", "/en");
+  await expect(
+    italian.getByRole("link", { name: "home page" }),
+  ).toHaveAttribute("href", "/it");
 
-  await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await english.getByRole("link", { name: "home page" }).click();
+  await expect(page).toHaveURL(/\/en$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
 });
 
+test("the 404 keeps the visitor's stored theme, in every Language version and under an unknown one", async ({
+  page,
+}) => {
+  await page.goto("/en");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+
+  for (const route of ["/en/no-such-page", "/it/no-such-page", "/fr"]) {
+    const response = await page.goto(route);
+    expect(response?.status(), route).toBe(404);
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+    await expect(page.locator("body")).toHaveCSS(
+      "background-color",
+      "rgb(246, 244, 240)",
+    );
+  }
+});
+
 test("the Privacy notice is a note at the foot of the home page, outside the section nav", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   const main = page.getByRole("main");
   await expect(main.getByRole("heading", { level: 2 })).toHaveText([
     "About",
@@ -434,14 +812,26 @@ test("the Privacy notice is a note at the foot of the home page, outside the sec
 });
 
 for (const route of ["/projects/devflow", "/resume"]) {
-  test(`${route} links to the Privacy notice at its foot`, async ({ page }) => {
+  test(`${route} has the language menu at its foot, where the Privacy link was`, async ({
+    page,
+  }) => {
     const errors = trackErrors(page);
-    await page.goto(route);
+    await page.goto(`/en${route}`);
+    await expect(
+      page.getByRole("link", { name: "Privacy", exact: true }),
+    ).toHaveCount(0);
 
-    await page.getByRole("link", { name: "Privacy", exact: true }).click();
-
-    await expect(page).toHaveURL(/\/#privacy$/);
-    await expect(page.locator("#privacy")).toBeInViewport();
+    const { pill, entries } = languageMenu(page);
+    await expect(page.locator("footer").locator(pill)).toBeVisible();
+    await pill.click();
+    await expect(entries.first()).toHaveAttribute("href", `/en${route}`);
+    await expect(entries.last()).toHaveAttribute("href", `/it${route}`);
+    await expect(entries.first()).toBeInViewport();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
     await page.waitForLoadState("networkidle");
     expect(errors).toEqual([]);
   });
@@ -449,7 +839,7 @@ for (const route of ["/projects/devflow", "/resume"]) {
 
 test("section nav is hidden on narrow screens", async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
-  await page.goto("/");
+  await page.goto("/en");
   await expect(page.getByRole("navigation", { name: "Sections" })).toBeHidden();
 });
 
@@ -482,7 +872,7 @@ function homeContent(page: Page) {
 test("every home section is visible once scrolled into view", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en");
   for (const content of homeContent(page)) {
     // To the middle: content peeking into the window's bottom edge hasn't risen yet, by design.
     await content.evaluate((element) =>
@@ -495,12 +885,45 @@ test("every home section is visible once scrolled into view", async ({
 test.describe("under reduced motion", () => {
   test.use({ reducedMotion: "reduce" });
 
+  test("the theme switch swaps its glyph without a roll", async ({ page }) => {
+    await page.goto("/en");
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    const toDark = page.getByRole("button", { name: "Switch to dark theme" });
+    expect(await animations(toDark)).toBe(0);
+    expect(await visibleGlyphs(toDark)).toEqual([{ glyph: "☀", whole: true }]);
+  });
+
+  test("the language menu opens without rising, and its dot won't glide", async ({
+    page,
+  }) => {
+    await page.goto("/en");
+    const { nav, pill, entries } = languageMenu(page);
+    await pill.click();
+    await expect(entries.first()).toBeVisible();
+    expect(await animations(nav)).toBe(0);
+    expect(await glideDuration(nav)).toBe("0s");
+  });
+
+  test("picking a language switches the page without waiting for a glide", async ({
+    page,
+  }) => {
+    await page.goto("/en#work");
+    const { pill, entries } = languageMenu(page);
+    await pill.click();
+    const requested = page.waitForRequest(/\/it$/);
+    const clicked = Date.now();
+    await entries.last().click();
+    await requested;
+    expect(Date.now() - clicked).toBeLessThan(200);
+    await expect(page).toHaveURL(/\/it#work$/);
+  });
+
   test("home content is visible at first paint, before any script runs", async ({
     page,
   }) => {
     // Scripts only: the stylesheet that would hide the content is a chunk too, and has to load.
     await page.route("**/*.js", (route) => route.abort());
-    await page.goto("/");
+    await page.goto("/en");
     for (const content of homeContent(page)) {
       expect(await paintedOpacity(content)).toBe(1);
     }
@@ -511,7 +934,7 @@ test.describe("with JavaScript off", () => {
   test.use({ javaScriptEnabled: false });
 
   test("home content is visible", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/en");
     for (const content of homeContent(page)) {
       expect(await paintedOpacity(content)).toBe(1);
     }
@@ -523,7 +946,7 @@ test("a Work card opens its Project page, which links back home", async ({
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   const work = page.getByRole("region", { name: "Work" });
   await expect(work.getByText("Open source · 2026")).toBeVisible();
   // The whole card is the link: a real click on the summary text lands on the link's overlay.
@@ -539,7 +962,7 @@ test("a Work card opens its Project page, which links back home", async ({
     summary.y + summary.height / 2,
   );
 
-  await expect(page).toHaveURL(/\/projects\/devflow$/);
+  await expect(page).toHaveURL(/\/en\/projects\/devflow$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "devflow" }),
   ).toBeVisible();
@@ -555,7 +978,7 @@ test("a Work card opens its Project page, which links back home", async ({
   await expect(page.locator("article hr")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/en$/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -565,7 +988,7 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   const card = page.getByRole("link", {
     name: "itsrob00/devflow on GitHub",
     exact: true,
@@ -603,10 +1026,14 @@ test("a Project page ends with its Repo preview: a new-tab link to the repo, wit
 });
 
 for (const route of [
-  "/",
-  "/resume",
-  "/projects/devflow",
-  "/projects/exolab-redesign",
+  "/en",
+  "/en/resume",
+  "/en/projects/devflow",
+  "/en/projects/exolab-redesign",
+  "/it",
+  "/it/resume",
+  "/it/projects/devflow",
+  "/it/projects/exolab-redesign",
 ]) {
   test(`${route} asks no other origin for anything`, async ({
     page,
@@ -634,10 +1061,10 @@ test("the Résumé link opens the Résumé, built from the records, which links 
 }) => {
   const errors = trackErrors(page);
 
-  await page.goto("/");
+  await page.goto("/en");
   await page.getByRole("link", { name: "Résumé", exact: true }).click();
 
-  await expect(page).toHaveURL(/\/resume$/);
+  await expect(page).toHaveURL(/\/en\/resume$/);
   await expect(
     page.getByRole("heading", { level: 1, name: "Rob", exact: true }),
   ).toBeVisible();
@@ -727,7 +1154,7 @@ test("the Résumé link opens the Résumé, built from the records, which links 
   await expect(page.locator("article svg")).toHaveCount(0);
 
   await page.getByRole("link", { name: "← Rob" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/en$/);
   await page.waitForLoadState("networkidle");
   expect(errors).toEqual([]);
 });
@@ -739,11 +1166,11 @@ for (const theme of ["dark", "light"] as const) {
   test(`the Résumé prints black on white on one A4 page from the ${theme} theme`, async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/en");
     if (theme === "light") {
       await page.getByRole("button", { name: "Switch to light theme" }).click();
     }
-    await page.goto("/resume");
+    await page.goto("/en/resume");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
 
     await page.emulateMedia({ media: "print" });
@@ -778,9 +1205,7 @@ for (const theme of ["dark", "light"] as const) {
       "rgb(255, 255, 255)",
     );
     await expect(page.getByRole("link", { name: "← Rob" })).toBeHidden();
-    await expect(
-      page.getByRole("link", { name: "Privacy", exact: true }),
-    ).toBeHidden();
+    await expect(languageMenu(page).pill).toBeHidden();
     await expect(page.getByRole("link", { name: "Download PDF" })).toBeHidden();
 
     // Accent only on links: every other piece of text is a shade of grey.
@@ -820,27 +1245,46 @@ for (const theme of ["dark", "light"] as const) {
   });
 }
 
-test("the Résumé PDF downloads as Rob-Resume.pdf, and nothing else links to it", async ({
+test("the PDF's phone number finds the contact list in any Language version", async ({
   page,
 }) => {
-  const errors = trackErrors(page);
+  await page.goto("/en/resume");
+  const contact = page.getByRole("list", { name: "Contact" });
+  await contact.evaluate((list) => list.setAttribute("aria-label", "Contatti"));
 
-  for (const route of ["/", "/projects/devflow"]) {
-    await page.goto(route);
-    await expect(page.locator('a[href$=".pdf"]')).toHaveCount(0);
-  }
+  await applyPrivateDetails(page, STAND_IN);
 
-  await page.goto("/resume");
-  await expect(page.locator('a[href$=".pdf"]')).toHaveCount(1);
-  const downloading = page.waitForEvent("download");
-  await page.getByRole("link", { name: "Download PDF" }).click();
-  const download = await downloading;
-
-  expect(download.suggestedFilename()).toBe("Rob-Resume.pdf");
-  // The committed file, not a fresh print.
-  expectOneA4Page(await readFile(await download.path()));
-  expect(errors).toEqual([]);
+  await expect(
+    page.getByRole("list", { name: "Contatti" }).getByRole("listitem"),
+  ).toContainText([STAND_IN.phone]);
 });
+
+for (const [lang, label, file] of [
+  ["en", "Download PDF", "Roberto-Prats-EN.pdf"],
+  ["it", "Scarica PDF", "Roberto-Prats-IT.pdf"],
+] as const) {
+  test(`the ${lang} Résumé PDF downloads as ${file}, and nothing else links to it`, async ({
+    page,
+  }) => {
+    const errors = trackErrors(page);
+
+    for (const route of [`/${lang}`, `/${lang}/projects/devflow`]) {
+      await page.goto(route);
+      await expect(page.locator('a[href$=".pdf"]')).toHaveCount(0);
+    }
+
+    await page.goto(`/${lang}/resume`);
+    await expect(page.locator('a[href$=".pdf"]')).toHaveCount(1);
+    const downloading = page.waitForEvent("download");
+    await page.getByRole("link", { name: label }).click();
+    const download = await downloading;
+
+    expect(download.suggestedFilename()).toBe(file);
+    // The committed file, not a fresh print.
+    expectOneA4Page(await readFile(await download.path()));
+    expect(errors).toEqual([]);
+  });
+}
 
 test("links to other sites open in a new tab and keep the referrer; every other link stays in the tab", async ({
   page,
@@ -882,7 +1326,7 @@ test("links to other sites open in a new tab and keep the referrer; every other 
 test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab, and the Résumé's own-site link doesn't", async ({
   page,
 }) => {
-  for (const route of ["/", "/resume"]) {
+  for (const route of ["/en", "/en/resume"]) {
     await page.goto(route);
     for (const href of [
       "https://www.linkedin.com/in/robertoprats",
@@ -899,7 +1343,7 @@ test("LinkedIn and GitHub keep rel=me, Project write-up links open in a new tab,
     page.locator('article a[href="https://itsrob.dev"]'),
   ).not.toHaveAttribute("target");
 
-  await page.goto("/projects/devflow");
+  await page.goto("/en/projects/devflow");
   await expect(
     page.getByRole("link", { name: "Matt Pocock's skills" }),
   ).toHaveAttribute("target", "_blank");

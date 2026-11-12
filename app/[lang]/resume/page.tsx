@@ -1,0 +1,263 @@
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { Anchor } from "@/components/anchor";
+import { OneColumnPage } from "@/components/one-column-page";
+import { experience as experienceRecords } from "@/content/experience";
+import { profile, profileCopy } from "@/content/profile";
+import { resume as resumeRecords } from "@/content/resume";
+import { formatDateRange } from "@/lib/date-range";
+import { dictionary, type Dictionary } from "@/lib/dictionaries";
+import { languageVersion } from "@/lib/language-versions";
+import { getProjects, isOpenable } from "@/lib/projects";
+import {
+  contactItems,
+  displayUrl,
+  formatEducationDates,
+  type ContactItem,
+} from "@/lib/resume";
+import { homeCard, pageMetadata } from "@/lib/site-metadata";
+import styles from "./page.module.css";
+
+// The Résumé renders its own markup rather than the home components: their accent pills and
+// kickers would break "accent only on links" in print. Every link here is absolute (or mailto),
+// because the printed PDF is read away from this site. The PDF adds Rob's full name and phone
+// number at render time (scripts/resume-private.mts), so neither is in this page.
+
+// No sharing image of its own: it reuses home's.
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/resume">): Promise<Metadata> {
+  const version = languageVersion((await params).lang);
+  const t = dictionary[version.code];
+  return pageMetadata({
+    version,
+    path: "/resume",
+    title: t.resume,
+    description: t.resumePage.description({
+      ...profile,
+      ...profileCopy[version.code],
+    }),
+    card: homeCard(version.code),
+  });
+}
+
+export default async function ResumePage({
+  params,
+}: PageProps<"/[lang]/resume">) {
+  const { code, pdfSuffix } = languageVersion((await params).lang);
+  const pdf = `Roberto-Prats-${pdfSuffix}.pdf`;
+  const experience = experienceRecords[code];
+  const resume = resumeRecords[code];
+  const t = dictionary[code];
+  const { headings } = t.resumePage;
+  return (
+    <OneColumnPage lang={code}>
+      {/* Outside the article, so it never prints and the article's links stay absolute. Not a NavLink:
+          the PDF is a static file in public/, not a route for next/link. */}
+      <Anchor href={`/${pdf}`} download={pdf} className={styles.download}>
+        {t.resumePage.download}
+      </Anchor>
+      <article className={styles.resume}>
+        <header className={styles.header}>
+          <h1 className={styles.name}>{profile.name}</h1>
+          <p className={styles.role}>{profileCopy[code].role}</p>
+          <ul
+            className={styles.contact}
+            aria-label={t.resumePage.contact}
+            data-contact=""
+          >
+            {contactItems(
+              { ...profile, ...profileCopy[code] },
+              resume.remote,
+              t.email,
+            ).map((item) => (
+              <Contact
+                key={item.kind === "text" ? item.text : item.href}
+                {...item}
+              />
+            ))}
+          </ul>
+        </header>
+
+        <Section id="profile" title={headings.profile}>
+          <p className={styles.summary}>{resume.profileParagraph}</p>
+        </Section>
+
+        <Section id="experience" title={headings.experience}>
+          <ol className={styles.entries}>
+            {experience.map((entry) => (
+              <li key={entry.employer}>
+                <Entry
+                  title={entry.employer}
+                  detail={entry.role}
+                  when={formatDateRange(entry, "month", code)}
+                />
+                <ol className={styles.engagements}>
+                  {entry.engagements.map((engagement) => (
+                    <li key={engagement.name} className={styles.engagement}>
+                      <Entry
+                        level={4}
+                        title={engagement.name}
+                        detail={engagement.role}
+                        when={formatDateRange(engagement, "month", code)}
+                      />
+                      <p className={styles.meta}>
+                        <span className={styles.client}>
+                          {engagement.client}
+                        </span>
+                        {" · "}
+                        {engagement.tech.join(", ")}
+                      </p>
+                      <p className={styles.text}>{engagement.description}</p>
+                      <ul className={styles.bullets}>
+                        {engagement.bullets.map((bullet) => (
+                          <li key={bullet}>{bullet}</li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ol>
+              </li>
+            ))}
+          </ol>
+        </Section>
+
+        <Section id="projects" title={headings.projects}>
+          <ol className={styles.entries}>
+            {/* Only what a reader can open: one that isn't public yet waits on the site. */}
+            {getProjects(code)
+              .filter(isOpenable)
+              .map((project) => (
+                <li key={project.slug}>
+                  <Entry
+                    title={project.title}
+                    detail={project.role}
+                    when={formatDateRange(project, "month", code)}
+                  />
+                  <p className={styles.text}>{project.summary}</p>
+                  <p className={styles.meta}>
+                    {project.stack.join(" · ")}
+                    {[project.links.repo, project.links.live].map(
+                      (href) =>
+                        href && (
+                          <span key={href}>
+                            {" · "}
+                            <Anchor href={href}>{displayUrl(href)}</Anchor>
+                          </span>
+                        ),
+                    )}
+                  </p>
+                </li>
+              ))}
+          </ol>
+        </Section>
+
+        <Section id="skills" title={headings.skills}>
+          <ul className={styles.skills}>
+            {resume.skills.map((group) => (
+              <li key={group.label}>
+                <span className={styles.skillLabel}>{group.label}:</span>{" "}
+                {group.items.join(", ")}
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        <Section id="languages" title={headings.languages}>
+          <p className={styles.text}>
+            {resume.languages
+              .map(
+                ({ name, proficiency }) =>
+                  `${name} (${proficiency === "native" ? t.resumePage.native : proficiency})`,
+              )
+              .join(" · ")}
+          </p>
+        </Section>
+
+        <Section id="education" title={headings.education}>
+          <ol className={styles.entries}>
+            {resume.education.map((entry) => (
+              <li key={entry.title}>
+                <Entry
+                  title={entry.title}
+                  detail={entry.institution}
+                  when={formatEducationDates(entry.dates, code)}
+                />
+                {"detail" in entry && (
+                  <p className={styles.text}>{entry.detail}</p>
+                )}
+              </li>
+            ))}
+          </ol>
+        </Section>
+
+        <p className={styles.gdpr}>{resume.gdprLine}</p>
+      </article>
+    </OneColumnPage>
+  );
+}
+
+function Contact(item: ContactItem) {
+  switch (item.kind) {
+    case "text":
+      return <li>{item.text}</li>;
+    case "link":
+      return (
+        <li>
+          <Anchor href={item.href} rel={item.rel}>
+            <span className={styles.screenOnly}>{item.screen}</span>
+            <span className={styles.printOnly}>{item.print}</span>
+          </Anchor>
+        </li>
+      );
+    case "print-link":
+      return (
+        <li className={styles.printOnly}>
+          <Anchor href={item.href} rel={item.rel}>
+            {item.print}
+          </Anchor>
+        </li>
+      );
+  }
+}
+
+function Section({
+  id,
+  title,
+  children,
+}: {
+  id: keyof Dictionary["resumePage"]["headings"];
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section id={id} aria-labelledby={`${id}-title`} className={styles.section}>
+      <h2 id={`${id}-title`} className={styles.heading}>
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+function Entry({
+  level = 3,
+  title,
+  detail,
+  when,
+}: {
+  level?: 3 | 4;
+  title: string;
+  detail: string;
+  when: string;
+}) {
+  const Heading = level === 3 ? "h3" : "h4";
+  return (
+    <div className={styles.entryHead}>
+      <Heading className={styles.entryTitle}>
+        {title} <span className={styles.detail}>· {detail}</span>
+      </Heading>
+      <p className={styles.when}>{when}</p>
+    </div>
+  );
+}

@@ -2,11 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
-      "source": "/(opengraph-image|icon|apple-icon)",
+      "source": "/(icon|apple-icon)",
       "headers": [{ "key": "Content-Type", "value": "image/png" }]
     },
     {
-      "source": "/projects/:slug/opengraph-image",
+      "source": "/:lang/opengraph-image",
+      "headers": [{ "key": "Content-Type", "value": "image/png" }]
+    },
+    {
+      "source": "/:lang/projects/:slug/opengraph-image",
       "headers": [{ "key": "Content-Type", "value": "image/png" }]
     }
   ],
@@ -16,6 +20,48 @@
       "has": [{ "type": "host", "value": "www.itsrob.dev" }],
       "destination": "https://itsrob.dev/:path*",
       "permanent": true
+    },
+    {
+      "source": "/resume",
+      "destination": "/en/resume",
+      "permanent": true
+    },
+    {
+      "source": "/opengraph-image",
+      "destination": "/en/opengraph-image",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:slug",
+      "destination": "/en/projects/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/projects/:slug/opengraph-image",
+      "destination": "/en/projects/:slug/opengraph-image",
+      "permanent": true
+    },
+    {
+      "source": "/Rob-Resume.pdf",
+      "destination": "/Roberto-Prats-EN.pdf",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept-language",
+          "value": "(.*,)?\\s*it(-[A-Za-z0-9]+)?\\s*(;\\s*q\\s*=\\s*(1(\\.0*)?|0\\.[0-9]*[1-9][0-9]*)\\s*)?(,.*)?"
+        }
+      ],
+      "destination": "/it",
+      "permanent": false
+    },
+    {
+      "source": "/",
+      "destination": "/en",
+      "permanent": false
     }
   ]
 }
